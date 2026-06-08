@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#1EA9BA" />
+
+  <title>Prénom Nom — Euro Campus</title>
+  <meta name="description" content="Prénom Nom, Conseiller en Orientation chez Euro Campus." />
+
+  <!-- Open Graph (link preview on WhatsApp / Messenger) -->
+  <meta property="og:title" content="Prénom Nom — Euro Campus" />
+  <meta property="og:description" content="Conseiller en Orientation · Béjaïa (Bougie)" />
+  <meta property="og:type" content="profile" />
+  <meta property="og:locale" content="fr_DZ" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================================
+       EURO CAMPUS — brand tokens (teal #1EA9BA from their site)
+       ========================================================= */
+    :root {
+      --teal:        #1EA9BA;
+      --teal-deep:   #157f8c;
+      --teal-dark:   #0e5c66;
+      --teal-light:  #5ec7d4;
+      --teal-pale:   #e6f6f8;
+      --ink:         #0d2c30;
+      --white:       #ffffff;
+      --off:         #f3f9fa;
+      --muted:       #5d7a7e;
+      --border:      rgba(30, 169, 186, 0.14);
+      --card-r:      22px;
+      --sh-sm: 0 2px 12px rgba(14, 92, 102, 0.08);
+      --sh-md: 0 8px 30px rgba(14, 92, 102, 0.14);
+      --sh-lg: 0 22px 60px rgba(14, 92, 102, 0.22);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--off);
+      color: var(--ink);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Atmospheric world-map style background (matches their banner) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 50% at 50% -8%, rgba(30,169,186,.22) 0%, transparent 68%),
+        radial-gradient(ellipse 60% 45% at 95% 100%, rgba(94,199,212,.14) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 22px 16px 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .page > * { animation: rise .55s cubic-bezier(.22,.68,0,1.2) both; }
+    .page > *:nth-child(1){animation-delay:.04s}
+    .page > *:nth-child(2){animation-delay:.10s}
+    .page > *:nth-child(3){animation-delay:.16s}
+    .page > *:nth-child(4){animation-delay:.22s}
+    .page > *:nth-child(5){animation-delay:.28s}
+    .page > *:nth-child(6){animation-delay:.34s}
+    .page > *:nth-child(7){animation-delay:.40s}
+    .page > *:nth-child(8){animation-delay:.46s}
+    @keyframes rise { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Brand bar ── */
+    .brand-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 13px 18px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--sh-sm);
+    }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-mark {
+      width: 40px; height: 40px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .logo-mark svg { width:40px; height:40px; }
+    .logo-text { line-height:1; }
+    .logo-text .ec {
+      font-family:'Manrope',sans-serif; font-weight:800;
+      font-size:1.05rem; color:var(--teal); letter-spacing:.02em;
+    }
+    .logo-text .tag {
+      display:block; font-size:.6rem; font-weight:600; color:var(--muted);
+      letter-spacing:.14em; text-transform:uppercase; margin-top:2px;
+    }
+    .nfc-badge {
+      display:flex; align-items:center; gap:5px;
+      background:var(--teal-pale); border:1px solid var(--border);
+      border-radius:100px; padding:5px 11px;
+      font-size:.68rem; font-weight:700; color:var(--teal-deep);
+      letter-spacing:.08em; text-transform:uppercase;
+    }
+    .nfc-badge svg{ width:13px;height:13px;fill:var(--teal-deep); }
+
+    /* ── Hero ── */
+    .hero {
+      position:relative; overflow:hidden;
+      background: linear-gradient(140deg, var(--teal) 0%, var(--teal-deep) 60%, var(--teal-dark) 100%);
+      border-radius: var(--card-r);
+      padding: 34px 26px 30px;
+      box-shadow: var(--sh-lg);
+    }
+    .hero::before {
+      content:''; position:absolute; top:-50px; right:-50px;
+      width:220px; height:220px;
+      background: radial-gradient(circle, rgba(255,255,255,.16) 0%, transparent 70%);
+      border-radius:50%;
+    }
+    .hero::after {
+      content:''; position:absolute; bottom:-70px; left:-40px;
+      width:260px; height:180px;
+      background: radial-gradient(ellipse, rgba(255,255,255,.07) 0%, transparent 70%);
+      border-radius:50%;
+    }
+    .avatar {
+      width:78px; height:78px; border-radius:22px;
+      background: rgba(255,255,255,.16);
+      border: 2px solid rgba(255,255,255,.4);
+      backdrop-filter: blur(4px);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Manrope',sans-serif; font-weight:800; font-size:1.7rem;
+      color:#fff; margin-bottom:16px;
+      position:relative; z-index:1;
+    }
+    .person-name {
+      font-family:'Poppins',sans-serif; font-weight:700;
+      font-size:1.7rem; color:#fff; line-height:1.18;
+      position:relative; z-index:1;
+    }
+    .person-role {
+      font-size:.95rem; font-weight:500; color:rgba(255,255,255,.9);
+      margin-top:5px; position:relative; z-index:1;
+    }
+    .person-dept {
+      display:inline-block; margin-top:13px;
+      background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28);
+      border-radius:100px; padding:4px 14px;
+      font-size:.72rem; font-weight:700; color:#fff;
+      letter-spacing:.07em; text-transform:uppercase;
+      position:relative; z-index:1;
+    }
+
+    /* ── Location ── */
+    .loc {
+      display:flex; align-items:center; gap:12px;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:15px; padding:13px 16px;
+      text-decoration:none; color:var(--ink);
+      box-shadow:var(--sh-sm);
+      transition:box-shadow .2s, transform .2s;
+    }
+    .loc:hover{ box-shadow:var(--sh-md); transform:translateY(-2px); }
+    .loc-ic {
+      width:40px;height:40px;flex-shrink:0;
+      background:linear-gradient(135deg,var(--teal),var(--teal-light));
+      border-radius:12px; display:flex; align-items:center; justify-content:center;
+    }
+    .loc-ic svg{ width:19px;height:19px;fill:#fff; }
+    .loc-t{ flex:1; }
+    .loc-l{ font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase; }
+    .loc-v{ font-size:.92rem;font-weight:600;color:var(--ink);margin-top:2px; }
+    .loc-arrow svg{ width:16px;height:16px;fill:var(--teal); }
+
+    /* ── Section label ── */
+    .label {
+      font-size:.7rem; font-weight:800; color:var(--muted);
+      letter-spacing:.12em; text-transform:uppercase;
+      padding:0 4px; margin-bottom:-3px;
+    }
+
+    /* ── Contact grid ── */
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .btn {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:7px; padding:17px 10px; border-radius:15px;
+      text-decoration:none; font-size:.84rem; font-weight:700;
+      transition:transform .18s, box-shadow .18s; border:none; cursor:pointer;
+    }
+    .btn:hover{ transform:translateY(-3px); box-shadow:var(--sh-md); }
+    .btn:active{ transform:scale(.96); }
+    .btn svg{ width:24px;height:24px; }
+    .b-call { background:var(--teal); color:#fff; box-shadow:0 4px 14px rgba(30,169,186,.3); }
+    .b-mail { background:var(--white); color:var(--ink); border:1px solid var(--border); }
+    .b-wa   { background:#25d366; color:#fff; box-shadow:0 4px 14px rgba(37,211,102,.25); }
+    .b-li   { background:#0a66c2; color:#fff; box-shadow:0 4px 14px rgba(10,102,194,.25); }
+
+    /* ── Save CTA ── */
+    .save {
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      background:linear-gradient(90deg,var(--teal) 0%,var(--teal-deep) 100%);
+      color:#fff; font-size:.96rem; font-weight:700; padding:18px;
+      border-radius:15px; text-decoration:none;
+      box-shadow:0 6px 22px rgba(30,169,186,.36);
+      transition:transform .18s, box-shadow .18s; letter-spacing:.01em;
+    }
+    .save:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(30,169,186,.46); }
+    .save svg{ width:22px;height:22px;fill:#fff; }
+
+    /* ── Social ── */
+    .social { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .s-btn {
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+      padding:13px 6px; background:var(--white); border:1px solid var(--border);
+      border-radius:13px; font-size:.72rem; font-weight:600; color:var(--ink);
+      text-decoration:none; transition:background .15s, transform .15s;
+    }
+    .s-btn:hover{ background:var(--teal-pale); transform:translateY(-2px); }
+    .s-btn svg{ width:20px;height:20px; }
+
+    .divider{ height:1px; background:var(--border); border-radius:1px; }
+    .footer{ text-align:center; padding-top:6px; font-size:.72rem; color:var(--muted); }
+    .footer a{ color:var(--teal-deep); text-decoration:none; font-weight:700; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Brand bar with EC logo -->
+  <div class="brand-bar">
+    <div class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 64 64" fill="none">
+          <rect x="4" y="14" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <rect x="4" y="29" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <rect x="4" y="44" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <path d="M58 20a18 18 0 1 0 0 24" stroke="#1EA9BA" stroke-width="6" stroke-linecap="round" fill="none"/>
+        </svg>
+      </span>
+      <span class="logo-text">
+        <span class="ec">EURO CAMPUS</span>
+        <span class="tag">Études &amp; Immigration</span>
+      </span>
+    </div>
+    <span class="nfc-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      NFC
+    </span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="avatar">PN</div>
+    <div class="person-name">Prénom Nom</div>
+    <div class="person-role">Conseiller en Orientation</div>
+    <div class="person-dept">Orientation</div>
+  </div>
+
+  <!-- Location -->
+  <a class="loc" href="https://maps.google.com/?q=Bejaia+Algeria" target="_blank" rel="noopener">
+    <span class="loc-ic">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+    </span>
+    <span class="loc-t">
+      <span class="loc-l">Bureau</span>
+      <span class="loc-v">Béjaïa (Bougie)</span>
+    </span>
+    <span class="loc-arrow">
+      <svg viewBox="0 0 24 24"><path d="M9.29 6.71a1 1 0 000 1.41L13.17 12l-3.88 3.88a1 1 0 101.41 1.41l4.59-4.59a1 1 0 000-1.41L10.7 6.7a1 1 0 00-1.41.01z"/></svg>
+    </span>
+  </a>
+
+  <!-- Contact -->
+  <div class="label">Contact</div>
+  <div class="grid">
+    <a class="btn b-call" href="tel:+213550989849">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      Appeler
+    </a>
+    <a class="btn b-mail" href="mailto:contact@euro-campus.com">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Email
+    </a>
+    <a class="btn b-wa" href="https://wa.me/213550989849" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.855L.057 23.57a.75.75 0 00.906.942l5.965-1.546A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.708 9.708 0 01-5.032-1.399l-.36-.214-3.742.969.998-3.629-.235-.374A9.716 9.716 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+      WhatsApp
+    </a>
+    <a class="btn b-li" href="https://www.linkedin.com/company/euro-campus-dz/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      LinkedIn
+    </a>
+  </div>
+
+  <!-- Save -->
+  <a class="save" href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AFN%3APr%C3%A9nom%20Nom%0ATITLE%3AConseiller%20en%20Orientation%0AORG%3AEuro%20Campus%3BOrientation%0ATEL%3BTYPE%3DWORK%2CVOICE%3A%2B213550989849%0AEMAIL%3BTYPE%3DWORK%3Acontact%40euro-campus.com%0AADR%3BTYPE%3DWORK%3A%3B%3BB%C3%A9ja%C3%AFa%20(Bougie)%3B%3B%3B%3BAlgeria%0AURL%3Ahttps%3A%2F%2Feurocampuss.com%0AEND%3AVCARD" download="employe-07.vcf">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+    Enregistrer le contact
+  </a>
+
+  <!-- Social -->
+  <div class="label">Suivez Euro Campus</div>
+  <div class="social">
+    <a class="s-btn" href="https://www.instagram.com/Euro_Campus" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      Instagram
+    </a>
+    <a class="s-btn" href="https://www.facebook.com/eurocampus" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      Facebook
+    </a>
+    <a class="s-btn" href="https://www.tiktok.com/@eurocampus" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#000"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/></svg>
+      TikTok
+    </a>
+    <a class="s-btn" href="https://www.linkedin.com/company/euro-campus-dz/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      LinkedIn
+    </a>
+    <a class="s-btn" href="https://eurocampuss.com" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#1EA9BA"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      Site Web
+    </a>
+    <a class="s-btn" href="mailto:contact@euro-campus.com">
+      <svg viewBox="0 0 24 24" fill="#1EA9BA"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Email
+    </a>
+  </div>
+
+  <div class="divider"></div>
+  <div class="footer">
+    Euro Campus · 9+ ans d'expertise · <a href="https://eurocampuss.com">eurocampuss.com</a>
+  </div>
+
+</div>
+</body>
+</html>

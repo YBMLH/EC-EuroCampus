@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Euro Campus — Répertoire des cartes NFC</title>
+  <meta name="theme-color" content="#1EA9BA"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --teal:#1EA9BA; --teal-deep:#157f8c; --teal-light:#5ec7d4;
+      --ink:#0d2c30; --off:#f3f9fa; --muted:#5d7a7e; --border:rgba(30,169,186,.14); --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Manrope',sans-serif;background:var(--off);color:var(--ink)}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 90% 40% at 50% -5%,rgba(30,169,186,.18) 0%,transparent 66%);pointer-events:none}
+    .wrap{max-width:780px;margin:0 auto;padding:36px 18px 80px;position:relative}
+    header{text-align:center;margin-bottom:34px}
+    .logo-mark{display:inline-flex;margin-bottom:10px}
+    .logo-mark svg{width:60px;height:60px}
+    .title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.7rem;color:var(--teal)}
+    .sub{font-size:.9rem;color:var(--muted);margin-top:4px}
+    .badge{display:inline-block;margin-top:12px;background:var(--teal);color:#fff;border-radius:100px;padding:5px 16px;font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:13px}
+    .card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:20px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 10px rgba(14,92,102,.06);transition:box-shadow .2s,transform .2s}
+    .card:hover{box-shadow:0 10px 28px rgba(14,92,102,.14);transform:translateY(-3px)}
+    .av{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+    .cn{font-weight:700;font-size:.96rem}
+    .cr{font-size:.78rem;color:var(--muted)}
+    .city{font-size:.7rem;font-weight:700;color:var(--teal-deep);background:rgba(30,169,186,.08);border-radius:7px;padding:3px 9px;display:inline-block;margin-top:3px;width:fit-content}
+    footer{text-align:center;margin-top:44px;font-size:.8rem;color:var(--muted)}
+    .note{background:#fff8e6;border:1px solid #f0d98a;border-radius:12px;padding:14px 16px;font-size:.82rem;color:#7a5d00;margin-bottom:24px;line-height:1.5}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo-mark">
+      <svg viewBox="0 0 64 64" fill="none">
+        <rect x="4" y="14" width="26" height="6" rx="3" fill="#1EA9BA"/>
+        <rect x="4" y="29" width="26" height="6" rx="3" fill="#1EA9BA"/>
+        <rect x="4" y="44" width="26" height="6" rx="3" fill="#1EA9BA"/>
+        <path d="M58 20a18 18 0 1 0 0 24" stroke="#1EA9BA" stroke-width="6" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <div class="title">Euro Campus</div>
+    <div class="sub">Répertoire interne des cartes NFC</div>
+    <span class="badge">15 cartes actives</span>
+  </header>
+
+  <div class="note">
+    🔒 Cette page est un panneau d'administration interne (liste des 15 cartes).
+    Chaque carte a sa propre adresse à programmer sur la puce NFC.
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>Euro Campus · Système de cartes NFC · 7 bureaux en Algérie</footer>
+</div>
+
+<script>
+  // Mirror of employee data for the directory listing
+  const people = [
+    {slug:"employe-01",name:"Prénom Nom",role:"Directeur Général",city:"Tizi Ouzou",av:"PN"},
+    {slug:"employe-02",name:"Prénom Nom",role:"Directrice des Opérations",city:"Tizi Ouzou",av:"PN"},
+    {slug:"employe-03",name:"Prénom Nom",role:"Conseiller en Orientation",city:"Tizi Ouzou",av:"PN"},
+    {slug:"employe-04",name:"Prénom Nom",role:"Conseillère en Orientation",city:"Tizi Ouzou",av:"PN"},
+    {slug:"employe-05",name:"Prénom Nom",role:"Responsable Admissions",city:"Tizi Ouzou",av:"PN"},
+    {slug:"employe-06",name:"Prénom Nom",role:"Responsable Béjaïa",city:"Béjaïa",av:"PN"},
+    {slug:"employe-07",name:"Prénom Nom",role:"Conseiller en Orientation",city:"Béjaïa",av:"PN"},
+    {slug:"employe-08",name:"Prénom Nom",role:"Responsable Alger",city:"Alger",av:"PN"},
+    {slug:"employe-09",name:"Prénom Nom",role:"Conseillère en Orientation",city:"Alger",av:"PN"},
+    {slug:"employe-10",name:"Prénom Nom",role:"Responsable Oran",city:"Oran",av:"PN"},
+    {slug:"employe-11",name:"Prénom Nom",role:"Conseiller en Orientation",city:"Oran",av:"PN"},
+    {slug:"employe-12",name:"Prénom Nom",role:"Responsable Constantine",city:"Constantine",av:"PN"},
+    {slug:"employe-13",name:"Prénom Nom",role:"Responsable Annaba",city:"Annaba",av:"PN"},
+    {slug:"employe-14",name:"Prénom Nom",role:"Responsable Boumerdès",city:"Boumerdès",av:"PN"},
+    {slug:"employe-15",name:"Prénom Nom",role:"Chargée Communication",city:"Tizi Ouzou",av:"PN"}
+  ];
+  const g = document.getElementById("grid");
+  people.forEach(p=>{
+    const a=document.createElement("a");
+    a.href="p.slug+".html"; a.className="card";
+    a.innerHTML=`<div class="av">${p.av}</div>
+      <div class="cn">${p.name}</div>
+      <div class="cr">${p.role}</div>
+      <span class="city">📍 ${p.city}</span>`;
+    g.appendChild(a);
+  });
+</script>
+</body>
+</html>
