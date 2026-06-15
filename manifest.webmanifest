@@ -1,0 +1,19 @@
+{
+  "name": "Euro Campus — Cartes NFC",
+  "short_name": "Euro Campus",
+  "description": "Cartes de visite NFC numériques de l'équipe Euro Campus.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f9fa",
+  "theme_color": "#1EA9BA",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

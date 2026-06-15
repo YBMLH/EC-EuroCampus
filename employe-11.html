@@ -236,6 +236,12 @@
     .footer{ text-align:center; padding-top:6px; font-size:.72rem; color:var(--muted); }
     .footer a{ color:var(--teal-deep); text-decoration:none; font-weight:700; }
   </style>
+  <!-- EC enhancements -->
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="assets/card.css" />
+  <script>(function(){try{var t=localStorage.getItem('ec-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
 <body>
 <div class="page">
@@ -346,5 +352,8 @@
   </div>
 
 </div>
+  <!-- EC enhancements -->
+  <script src="assets/qrcode.js"></script>
+  <script src="assets/card.js"></script>
 </body>
 </html>

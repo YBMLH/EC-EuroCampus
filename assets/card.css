@@ -1,0 +1,92 @@
+/* =========================================================
+   EURO CAMPUS — shared enhancements
+   Toolbar (theme / share / QR), QR modal, toast, dark mode.
+   Loaded by every card + the directory. Pure additive layer:
+   it overrides only CSS variables, never the page markup.
+   ========================================================= */
+
+/* ---- Floating toolbar (top-right) ---- */
+.ec-toolbar{
+  position:fixed; top:14px; right:14px; z-index:50;
+  display:flex; gap:8px;
+}
+.ec-tool{
+  width:42px; height:42px; border-radius:13px; border:1px solid var(--border);
+  background:var(--white); color:var(--teal-deep);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 4px 14px rgba(14,92,102,.12);
+  transition:transform .18s, box-shadow .18s, background .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.ec-tool:hover{ transform:translateY(-2px); box-shadow:0 8px 22px rgba(14,92,102,.2); }
+.ec-tool:active{ transform:scale(.94); }
+.ec-tool svg{ width:21px; height:21px; fill:currentColor; }
+
+/* ---- QR modal ---- */
+.ec-modal{
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; background:rgba(8,32,36,.55);
+  backdrop-filter:blur(6px);
+  opacity:0; visibility:hidden; transition:opacity .22s, visibility .22s;
+}
+.ec-modal.open{ opacity:1; visibility:visible; }
+.ec-modal-card{
+  background:var(--white); color:var(--ink);
+  border:1px solid var(--border); border-radius:24px;
+  padding:26px 26px 22px; width:100%; max-width:340px; text-align:center;
+  box-shadow:0 30px 70px rgba(8,32,36,.4);
+  transform:translateY(16px) scale(.97); transition:transform .26s cubic-bezier(.22,.68,0,1.2);
+}
+.ec-modal.open .ec-modal-card{ transform:translateY(0) scale(1); }
+.ec-modal-title{ font-family:'Poppins',sans-serif; font-weight:700; font-size:1.05rem; color:var(--teal-deep); }
+.ec-modal-sub{ font-size:.82rem; color:var(--muted); margin-top:4px; line-height:1.45; }
+.ec-qr{
+  width:228px; height:228px; margin:18px auto 14px;
+  background:#fff; border-radius:16px; padding:12px;
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+}
+.ec-qr canvas, .ec-qr img{ width:100%; height:100%; image-rendering:pixelated; }
+.ec-modal-name{ font-weight:700; font-size:1rem; }
+.ec-modal-role{ font-size:.82rem; color:var(--muted); margin-top:2px; }
+.ec-close{
+  margin-top:18px; width:100%; padding:13px; border:none; cursor:pointer;
+  border-radius:13px; background:var(--teal); color:#fff;
+  font-family:'Manrope',sans-serif; font-weight:700; font-size:.92rem;
+  transition:transform .15s, box-shadow .15s;
+}
+.ec-close:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(30,169,186,.4); }
+
+/* ---- Toast ---- */
+.ec-toast{
+  position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px);
+  z-index:120; background:var(--ink); color:#fff;
+  padding:11px 20px; border-radius:100px; font-size:.85rem; font-weight:600;
+  box-shadow:0 10px 30px rgba(8,32,36,.35);
+  opacity:0; visibility:hidden; transition:opacity .2s, transform .2s, visibility .2s;
+}
+.ec-toast.show{ opacity:1; visibility:visible; transform:translate(-50%,0); }
+
+/* =========================================================
+   DARK MODE — re-maps the brand tokens. Higher specificity
+   than the inline :root, so it wins without !important.
+   ========================================================= */
+html[data-theme="dark"]{
+  --teal:#27c0d2; --teal-deep:#7fdbe6; --teal-light:#1EA9BA;
+  --ink:#e9f7f9; --white:#11252a; --off:#081417;
+  --muted:#8fb3b8; --border:rgba(94,199,212,.20); --teal-pale:#10333a;
+}
+html[data-theme="dark"] body{ background:var(--off); color:var(--ink); }
+html[data-theme="dark"] body::before{
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -8%, rgba(39,192,210,.18) 0%, transparent 68%),
+    radial-gradient(ellipse 60% 45% at 95% 100%, rgba(39,192,210,.10) 0%, transparent 60%);
+}
+/* Light-hardcoded surfaces that the variables don't reach */
+html[data-theme="dark"] .note{ background:#1f2a10; border-color:#4a5a1e; color:#e9d98a; }
+html[data-theme="dark"] .ec-toast{ background:#04323a; }
+
+@media (prefers-reduced-motion:reduce){
+  .ec-tool,.ec-modal,.ec-modal-card,.ec-toast,.ec-close{ transition:none; }
+}

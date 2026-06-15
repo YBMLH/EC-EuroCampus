@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Euro Campus">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1EA9BA"/>
+      <stop offset="1" stop-color="#157f8c"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <g transform="translate(120 120) scale(4)" stroke="#fff" stroke-linecap="round">
+    <rect x="0" y="6" width="40" height="9" rx="4.5" fill="#fff" stroke="none"/>
+    <rect x="0" y="29" width="40" height="9" rx="4.5" fill="#fff" stroke="none"/>
+    <rect x="0" y="52" width="40" height="9" rx="4.5" fill="#fff" stroke="none"/>
+    <path d="M84 18a27 27 0 1 0 0 36" fill="none" stroke="#fff" stroke-width="9"/>
+  </g>
+</svg>
