@@ -170,7 +170,20 @@
       bar.appendChild(qrBtn);
     }
 
-    doc.body.appendChild(bar);
+    // Cards have a header bar — drop the buttons in there (in normal flow,
+    // so they never cover the logo / NFC badge). The directory has no header
+    // bar, so the toolbar floats in the corner instead.
+    var brand = doc.querySelector(".brand-bar");
+    if (brand) {
+      var group = el("div", "ec-bar-right");
+      var badge = brand.querySelector(".nfc-badge");
+      if (badge) group.appendChild(badge); // keep the NFC badge, grouped right
+      group.appendChild(bar);
+      brand.appendChild(group);
+    } else {
+      bar.classList.add("ec-floating");
+      doc.body.appendChild(bar);
+    }
   }
 
   if (doc.readyState === "loading") {
