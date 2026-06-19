@@ -33,6 +33,7 @@ function doPost(e) {
       data.reviewer || '',
       data.url || ''
     ]);
+    ensureDashboard_(ss);
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -41,6 +42,30 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Creates/refreshes a "Dashboard" tab: one row per employee with their
+// review count and average rating, sorted best-first. It uses a live
+// QUERY formula, so it updates automatically as new reviews arrive.
+function ensureDashboard_(ss) {
+  var dash = ss.getSheetByName('Dashboard');
+  if (!dash) dash = ss.insertSheet('Dashboard', 0); // put it as the first tab
+  if (dash.getRange('A1').getFormula()) return;      // already set up
+
+  dash.getRange('A1').setFormula(
+    '=QUERY(Avis!B2:E, "select B, C, D, count(E), avg(E) ' +
+    'where B is not null group by B, C, D order by avg(E) desc ' +
+    'label B \'Employé\', C \'Poste\', D \'Bureau\', ' +
+    'count(E) \'Nombre d\'\'avis\', avg(E) \'Note moyenne\'")'
+  );
+  dash.getRange('E:E').setNumberFormat('0.0');        // average to 1 decimal
+  dash.getRange('1:1').setFontWeight('bold');
+  dash.setFrozenRows(1);
+}
+
+// Optional: run this once manually to build the Dashboard before any reviews.
+function setupDashboard() {
+  ensureDashboard_(SpreadsheetApp.getActiveSpreadsheet());
 }
 ```
 
@@ -68,9 +93,22 @@ var REVIEW_ENDPOINT = "https://script.google.com/macros/s/AKfy...../exec";
 
 Commit and deploy (merge to `main`). Done — new reviews now append to the sheet.
 
+## The Dashboard tab
+The script automatically maintains a **Dashboard** tab (the first tab) with one
+row per employee:
+
+| Employé | Poste | Bureau | Nombre d'avis | Note moyenne |
+|---------|-------|--------|---------------|--------------|
+
+It's a live formula sorted by highest average rating first, so it updates on its
+own as new reviews come in — no maintenance needed. It appears automatically
+with the first review; to build it right away (before any reviews), run the
+`setupDashboard` function once from the Apps Script editor (**Run** ▶).
+
 ## Notes
-- **Per-employee tracking:** each row records the employee, role, and office, so
-  you can filter or build a pivot table for each person's average rating.
+- **Raw data:** the `Avis` tab keeps every review (date, employee, role, office,
+  rating, comment, client, page) so you can filter, export, or build your own
+  pivots beyond the Dashboard.
 - **Privacy / CORS:** the form submits "fire-and-forget" (`mode: no-cors`), so the
   browser never needs to read the response. If a submission ever fails (e.g. no
   network), the form automatically falls back to the mail-app method so the
