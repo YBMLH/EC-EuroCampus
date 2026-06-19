@@ -47,6 +47,18 @@
     .score .avg small{font-size:.62rem;color:var(--muted);font-weight:600}
     .score .cnt{font-size:.7rem;color:var(--muted);margin-top:3px}
     .stars{font-size:.8rem;letter-spacing:1px;color:#f5a623;margin-top:2px}
+    .row{cursor:pointer;transition:box-shadow .18s,transform .18s}
+    .row:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(14,92,102,.14)}
+    .chev{width:18px;height:18px;flex-shrink:0;fill:var(--muted)}
+    /* drill-down review list */
+    .rev-list{text-align:left;margin-top:8px;max-height:52vh;overflow:auto}
+    .rev{border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin-bottom:9px;background:var(--off)}
+    .rev-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+    .rev-stars{color:#f5a623;font-size:.82rem;letter-spacing:1px}
+    .rev-date{font-size:.7rem;color:var(--muted);white-space:nowrap}
+    .rev-cmt{font-size:.88rem;line-height:1.45}
+    .rev-by{font-size:.74rem;color:var(--muted);margin-top:6px;font-weight:700}
+    .rev-empty{font-size:.85rem;color:var(--muted);padding:10px 0;text-align:center}
 
     .state{text-align:center;color:var(--muted);font-size:.9rem;padding:46px 10px;line-height:1.5}
     .state b{color:var(--ink)}
@@ -98,10 +110,13 @@
     document.getElementById("content").innerHTML = '<div class="state">'+msg+'</div>';
   }
 
+  var currentStats = [];
+
   // JSONP callback (called by the <script> we inject below)
   window.ecStats = function (data) {
     if (!data || !data.ok) { setState("Impossible de charger les statistiques."); return; }
     var stats = data.stats || [];
+    currentStats = stats;
     if (!stats.length) {
       setState("Aucun avis pour le moment.<br><b>Les statistiques apparaîtront dès le premier avis.</b>");
       return;
@@ -118,7 +133,7 @@
 
     stats.forEach(function (s, i) {
       var pct = Math.max(0, Math.min(100, (s.avg/5)*100));
-      html += '<div class="row">' +
+      html += '<div class="row" data-i="'+i+'" role="button" tabindex="0">' +
         '<div class="rank">'+(i+1)+'</div>' +
         '<div class="who">' +
           '<div class="nm">'+escapeHtml(s.employee)+'</div>' +
@@ -130,10 +145,58 @@
           '<div class="stars">'+stars(s.avg)+'</div>' +
           '<div class="cnt">'+s.count+' avis</div>' +
         '</div>' +
+        '<svg class="chev" viewBox="0 0 24 24"><path d="M9.29 6.71a1 1 0 000 1.41L13.17 12l-3.88 3.88a1 1 0 101.41 1.41l4.59-4.59a1 1 0 000-1.41L10.7 6.7a1 1 0 00-1.41.01z"/></svg>' +
       '</div>';
     });
-    document.getElementById("content").innerHTML = html;
+    var box = document.getElementById("content");
+    box.innerHTML = html;
+    box.querySelectorAll(".row").forEach(function (row) {
+      var open = function () { openDetail(parseInt(row.getAttribute("data-i"), 10)); };
+      row.addEventListener("click", open);
+      row.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } });
+    });
   };
+
+  // ── drill-down popup: one person's individual reviews ──
+  function ensureModal() {
+    var m = document.getElementById("ec-detail");
+    if (m) return m;
+    m = document.createElement("div");
+    m.className = "ec-modal";
+    m.id = "ec-detail";
+    m.innerHTML = '<div class="ec-modal-card"></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function (e) { if (e.target === m) closeDetail(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
+    return m;
+  }
+  function closeDetail() {
+    var m = document.getElementById("ec-detail");
+    if (m) m.classList.remove("open");
+  }
+  function openDetail(i) {
+    var s = currentStats[i];
+    if (!s) return;
+    var reviews = (s.reviews || []).slice().reverse(); // newest first
+    var list = reviews.length ? reviews.map(function (r) {
+      return '<div class="rev">' +
+        '<div class="rev-top"><span class="rev-stars">' + stars(r.rating) + '</span>' +
+        (r.date ? '<span class="rev-date">' + escapeHtml(r.date) + '</span>' : '') + '</div>' +
+        '<div class="rev-cmt">' + (r.comment ? escapeHtml(r.comment) : '<i>(sans commentaire)</i>') + '</div>' +
+        (r.reviewer ? '<div class="rev-by">— ' + escapeHtml(r.reviewer) + '</div>' : '') +
+        '</div>';
+    }).join("") : '<div class="rev-empty">Aucun commentaire.</div>';
+
+    var m = ensureModal();
+    m.querySelector(".ec-modal-card").innerHTML =
+      '<div class="ec-modal-title">' + escapeHtml(s.employee) + '</div>' +
+      '<div class="ec-modal-sub">' + escapeHtml([s.role, s.office].filter(Boolean).join(" · ")) +
+        ' · ★ ' + s.avg.toFixed(1) + '/5 · ' + s.count + ' avis</div>' +
+      '<div class="rev-list">' + list + '</div>' +
+      '<button class="ec-close" type="button">Fermer</button>';
+    m.querySelector(".ec-close").addEventListener("click", closeDetail);
+    m.classList.add("open");
+  }
 
   function escapeHtml(str){
     return String(str==null?"":str).replace(/[&<>"']/g, function(c){

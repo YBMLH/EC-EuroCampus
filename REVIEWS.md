@@ -69,27 +69,27 @@ function setupDashboard() {
 }
 
 // Read endpoint for the in-site analytics page (dashboard.html).
-// Returns ONLY aggregates per employee (count + average) as JSON/JSONP —
-// never the raw comments or customer names.
+// Returns per-employee aggregates (count + average) AND their individual
+// reviews (date, rating, comment, client) as JSON/JSONP.
 function doGet(e) {
   var cb = (e && e.parameter && e.parameter.callback) || '';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Avis');
   var stats = [], total = 0;
   if (sheet && sheet.getLastRow() > 1) {
-    var rows = sheet.getRange(2, 2, sheet.getLastRow() - 1, 4).getValues(); // B:E
-    var map = {};
+    var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 8).getValues(); // A:H
+    var map = {}, order = [];
     rows.forEach(function (r) {
-      var name = r[0];
+      var name = r[1];
       if (!name) return;
-      if (!map[name]) map[name] = { employee: name, role: r[1], office: r[2], count: 0, sum: 0 };
-      map[name].count++;
-      map[name].sum += Number(r[3]) || 0;
-      total++;
+      if (!map[name]) { map[name] = { employee: name, role: r[2], office: r[3], count: 0, sum: 0, reviews: [] }; order.push(name); }
+      var note = Number(r[4]) || 0, m = map[name];
+      m.count++; m.sum += note; total++;
+      m.reviews.push({ date: formatDate_(r[0]), rating: note, comment: String(r[5] || ''), reviewer: String(r[6] || '') });
     });
-    Object.keys(map).forEach(function (k) {
+    order.forEach(function (k) {
       var m = map[k];
-      stats.push({ employee: m.employee, role: m.role, office: m.office, count: m.count, avg: m.count ? m.sum / m.count : 0 });
+      stats.push({ employee: m.employee, role: m.role, office: m.office, count: m.count, avg: m.count ? m.sum / m.count : 0, reviews: m.reviews });
     });
     stats.sort(function (a, b) { return b.avg - a.avg; });
   }
@@ -98,6 +98,13 @@ function doGet(e) {
   return ContentService
     .createTextOutput(out)
     .setMimeType(cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
+}
+
+function formatDate_(d) {
+  if (Object.prototype.toString.call(d) === '[object Date]' && !isNaN(d)) {
+    return Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd/MM/yyyy');
+  }
+  return String(d || '');
 }
 ```
 
