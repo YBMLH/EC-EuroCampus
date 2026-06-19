@@ -19,7 +19,7 @@
   // Paste your Google Apps Script Web-App URL between the quotes to log reviews
   // to your spreadsheet. While empty, the review form falls back to opening the
   // visitor's mail app instead. Deployment steps are in REVIEWS.md.
-  var REVIEW_ENDPOINT = "";
+  var REVIEW_ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
 
   /* ---------- icons ---------- */
   var ICONS = {
