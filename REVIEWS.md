@@ -67,6 +67,38 @@ function ensureDashboard_(ss) {
 function setupDashboard() {
   ensureDashboard_(SpreadsheetApp.getActiveSpreadsheet());
 }
+
+// Read endpoint for the in-site analytics page (dashboard.html).
+// Returns ONLY aggregates per employee (count + average) as JSON/JSONP —
+// never the raw comments or customer names.
+function doGet(e) {
+  var cb = (e && e.parameter && e.parameter.callback) || '';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Avis');
+  var stats = [], total = 0;
+  if (sheet && sheet.getLastRow() > 1) {
+    var rows = sheet.getRange(2, 2, sheet.getLastRow() - 1, 4).getValues(); // B:E
+    var map = {};
+    rows.forEach(function (r) {
+      var name = r[0];
+      if (!name) return;
+      if (!map[name]) map[name] = { employee: name, role: r[1], office: r[2], count: 0, sum: 0 };
+      map[name].count++;
+      map[name].sum += Number(r[3]) || 0;
+      total++;
+    });
+    Object.keys(map).forEach(function (k) {
+      var m = map[k];
+      stats.push({ employee: m.employee, role: m.role, office: m.office, count: m.count, avg: m.count ? m.sum / m.count : 0 });
+    });
+    stats.sort(function (a, b) { return b.avg - a.avg; });
+  }
+  var payload = JSON.stringify({ ok: true, total: total, stats: stats });
+  var out = cb ? cb + '(' + payload + ')' : payload;
+  return ContentService
+    .createTextOutput(out)
+    .setMimeType(cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
+}
 ```
 
 3. Click **Save** (💾).

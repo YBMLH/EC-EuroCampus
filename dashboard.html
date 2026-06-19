@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Statistiques — Euro Campus</title>
+  <meta name="theme-color" content="#1EA9BA"/>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml"/>
+  <link rel="apple-touch-icon" href="assets/icon.svg"/>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/card.css"/>
+  <script>(function(){try{var t=localStorage.getItem('ec-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <style>
+    :root{
+      --teal:#1EA9BA; --teal-deep:#157f8c; --teal-light:#5ec7d4; --teal-pale:#e6f6f8;
+      --ink:#0d2c30; --off:#f3f9fa; --muted:#5d7a7e; --border:rgba(30,169,186,.14); --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Manrope',sans-serif;background:var(--off);color:var(--ink)}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 90% 40% at 50% -5%,rgba(30,169,186,.18) 0%,transparent 66%);pointer-events:none}
+    .wrap{max-width:780px;margin:0 auto;padding:22px 16px 80px;position:relative}
+    .brand-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 10px rgba(14,92,102,.06);margin-bottom:18px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-mark svg{width:38px;height:38px}
+    .logo-text .ec{font-weight:800;font-size:1.02rem;color:var(--teal);letter-spacing:.02em}
+    .logo-text .tag{display:block;font-size:.58rem;font-weight:600;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+    .back{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:var(--teal-deep);text-decoration:none;margin-bottom:14px}
+    .back svg{width:16px;height:16px;fill:currentColor}
+    .title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.45rem;color:var(--teal)}
+    .sub{font-size:.86rem;color:var(--muted);margin-top:3px;margin-bottom:18px}
+
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:22px}
+    .sum{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:16px 12px;text-align:center;box-shadow:0 2px 10px rgba(14,92,102,.06)}
+    .sum .v{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;color:var(--teal-deep)}
+    .sum .l{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+
+    .row{display:flex;align-items:center;gap:13px;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:11px;box-shadow:0 2px 10px rgba(14,92,102,.06)}
+    .rank{font-family:'Poppins',sans-serif;font-weight:700;font-size:.95rem;color:var(--muted);width:24px;text-align:center;flex-shrink:0}
+    .who{flex:1;min-width:0}
+    .who .nm{font-weight:700;font-size:.96rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .who .rl{font-size:.74rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bar{height:7px;border-radius:6px;background:var(--teal-pale);margin-top:7px;overflow:hidden}
+    .bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-light));border-radius:6px}
+    .score{text-align:right;flex-shrink:0}
+    .score .avg{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.15rem;color:var(--teal-deep);line-height:1}
+    .score .avg small{font-size:.62rem;color:var(--muted);font-weight:600}
+    .score .cnt{font-size:.7rem;color:var(--muted);margin-top:3px}
+    .stars{font-size:.8rem;letter-spacing:1px;color:#f5a623;margin-top:2px}
+
+    .state{text-align:center;color:var(--muted);font-size:.9rem;padding:46px 10px;line-height:1.5}
+    .state b{color:var(--ink)}
+    footer{text-align:center;margin-top:34px;font-size:.78rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand-bar">
+    <div class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 64 64" fill="none">
+          <rect x="4" y="14" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <rect x="4" y="29" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <rect x="4" y="44" width="26" height="6" rx="3" fill="#1EA9BA"/>
+          <path d="M58 20a18 18 0 1 0 0 24" stroke="#1EA9BA" stroke-width="6" stroke-linecap="round" fill="none"/>
+        </svg>
+      </span>
+      <span class="logo-text"><span class="ec">EURO CAMPUS</span><span class="tag">Statistiques</span></span>
+    </div>
+  </div>
+
+  <a class="back" href="index.html">
+    <svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    Retour au répertoire
+  </a>
+
+  <div class="title">Statistiques des avis</div>
+  <div class="sub">Note moyenne et nombre d'avis par employé, en direct.</div>
+
+  <div id="content">
+    <div class="state" id="state">Chargement des statistiques…</div>
+  </div>
+
+  <footer>Euro Campus · Tableau de bord interne</footer>
+</div>
+
+<script src="assets/card.js"></script>
+<script>
+  // Live read endpoint = the same Apps Script Web App URL (GET, via JSONP).
+  var STATS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
+
+  function stars(avg){
+    var n = Math.round(avg), s = "";
+    for (var i=0;i<5;i++) s += (i<n ? "★" : "☆");
+    return s;
+  }
+  function setState(msg){
+    document.getElementById("content").innerHTML = '<div class="state">'+msg+'</div>';
+  }
+
+  // JSONP callback (called by the <script> we inject below)
+  window.ecStats = function (data) {
+    if (!data || !data.ok) { setState("Impossible de charger les statistiques."); return; }
+    var stats = data.stats || [];
+    if (!stats.length) {
+      setState("Aucun avis pour le moment.<br><b>Les statistiques apparaîtront dès le premier avis.</b>");
+      return;
+    }
+    var total = data.total || stats.reduce(function(s,x){return s+(x.count||0);},0);
+    var rated = stats.length;
+    var overall = total ? (stats.reduce(function(s,x){return s+(x.avg*x.count);},0)/total) : 0;
+
+    var html = '<div class="summary">' +
+      '<div class="sum"><div class="v">'+total+'</div><div class="l">Avis</div></div>' +
+      '<div class="sum"><div class="v">'+overall.toFixed(1)+'</div><div class="l">Moyenne</div></div>' +
+      '<div class="sum"><div class="v">'+rated+'</div><div class="l">Évalués</div></div>' +
+      '</div>';
+
+    stats.forEach(function (s, i) {
+      var pct = Math.max(0, Math.min(100, (s.avg/5)*100));
+      html += '<div class="row">' +
+        '<div class="rank">'+(i+1)+'</div>' +
+        '<div class="who">' +
+          '<div class="nm">'+escapeHtml(s.employee)+'</div>' +
+          '<div class="rl">'+escapeHtml([s.role, s.office].filter(Boolean).join(" · "))+'</div>' +
+          '<div class="bar"><span style="width:'+pct+'%"></span></div>' +
+        '</div>' +
+        '<div class="score">' +
+          '<div class="avg">'+s.avg.toFixed(1)+'<small>/5</small></div>' +
+          '<div class="stars">'+stars(s.avg)+'</div>' +
+          '<div class="cnt">'+s.count+' avis</div>' +
+        '</div>' +
+      '</div>';
+    });
+    document.getElementById("content").innerHTML = html;
+  };
+
+  function escapeHtml(str){
+    return String(str==null?"":str).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  (function load(){
+    if (!STATS_ENDPOINT || STATS_ENDPOINT.indexOf("http") !== 0) {
+      setState("Endpoint non configuré."); return;
+    }
+    var s = document.createElement("script");
+    s.src = STATS_ENDPOINT + "?action=stats&callback=ecStats&_=" + Date.now();
+    s.onerror = function(){ setState("Impossible de joindre le serveur des avis."); };
+    document.body.appendChild(s);
+    // safety timeout if the callback never fires
+    setTimeout(function(){
+      if (document.getElementById("state")) setState("Le chargement prend trop de temps. Réessayez.");
+    }, 12000);
+  })();
+</script>
+</body>
+</html>
