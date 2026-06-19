@@ -15,6 +15,12 @@
   var root = doc.documentElement;
   var STORE_KEY = "ec-theme";
 
+  // ── Reviews ──────────────────────────────────────────────────────────────
+  // Paste your Google Apps Script Web-App URL between the quotes to log reviews
+  // to your spreadsheet. While empty, the review form falls back to opening the
+  // visitor's mail app instead. Deployment steps are in REVIEWS.md.
+  var REVIEW_ENDPOINT = "";
+
   /* ---------- icons ---------- */
   var ICONS = {
     sun:  '<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 16a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zM4.22 4.22a1 1 0 011.42 0l1.41 1.41A1 1 0 115.64 7.05L4.22 5.64a1 1 0 010-1.42zm12.71 12.72a1 1 0 011.42 0l1.41 1.41a1 1 0 01-1.42 1.42l-1.41-1.41a1 1 0 010-1.42zM2 12a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4.22 19.78a1 1 0 010-1.42l1.41-1.41a1 1 0 011.42 1.42l-1.41 1.41a1 1 0 01-1.42 0zM16.93 7.05a1 1 0 010-1.42l1.41-1.41a1 1 0 011.42 1.42l-1.41 1.41a1 1 0 01-1.42 0z"/></svg>',
@@ -217,12 +223,44 @@
       var foot = (who ? "De la part de : " + who + "\r\n" : "") + "— Envoyé depuis la carte Euro Campus";
 
       var subject = "Avis client — " + info.name + (info.role ? " (" + info.role + ")" : "");
-      var href = "mailto:" + info.email +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent([head, note, body, foot].join("\r\n\r\n"));
-      window.location.href = href;
-      toast("Ouverture de votre messagerie…");
-      hide();
+
+      // Fallback: open the visitor's mail app with the formatted review.
+      function mailtoFallback() {
+        var href = "mailto:" + info.email +
+          "?subject=" + encodeURIComponent(subject) +
+          "&body=" + encodeURIComponent([head, note, body, foot].join("\r\n\r\n"));
+        window.location.href = href;
+        toast("Ouverture de votre messagerie…");
+        hide();
+      }
+
+      // No backend configured → use the mail-app fallback.
+      if (!REVIEW_ENDPOINT) { mailtoFallback(); return; }
+
+      // Backend configured → submit silently to the Google Sheet.
+      var payload = {
+        employee: info.name,
+        role: info.role,
+        office: info.office,
+        rating: rating,
+        comment: comment.value.trim(),
+        reviewer: who,
+        url: location.href
+      };
+      send.disabled = true;
+      send.textContent = "Envoi…";
+      fetch(REVIEW_ENDPOINT, {
+        method: "POST",
+        mode: "no-cors", // Apps Script doesn't send CORS headers; fire-and-forget
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      }).then(function () {
+        toast("Merci pour votre avis ✓");
+        hide();
+      }).catch(function () {
+        // network failure — don't lose the review, hand off to the mail app
+        mailtoFallback();
+      });
     });
 
     cancel.addEventListener("click", hide);
