@@ -56,7 +56,7 @@ function ensureDashboard_(ss) {
     '=QUERY(Avis!B2:E, "select B, C, D, count(E), avg(E) ' +
     'where B is not null group by B, C, D order by avg(E) desc ' +
     'label B \'Employé\', C \'Poste\', D \'Bureau\', ' +
-    'count(E) \'Nombre d\'\'avis\', avg(E) \'Note moyenne\'")'
+    'count(E) \'Avis reçus\', avg(E) \'Note moyenne\'")'
   );
   dash.getRange('E:E').setNumberFormat('0.0');        // average to 1 decimal
   dash.getRange('1:1').setFontWeight('bold');
