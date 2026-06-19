@@ -20,7 +20,8 @@
     sun:  '<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 16a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zM4.22 4.22a1 1 0 011.42 0l1.41 1.41A1 1 0 115.64 7.05L4.22 5.64a1 1 0 010-1.42zm12.71 12.72a1 1 0 011.42 0l1.41 1.41a1 1 0 01-1.42 1.42l-1.41-1.41a1 1 0 010-1.42zM2 12a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4.22 19.78a1 1 0 010-1.42l1.41-1.41a1 1 0 011.42 1.42l-1.41 1.41a1 1 0 01-1.42 0zM16.93 7.05a1 1 0 010-1.42l1.41-1.41a1 1 0 011.42 1.42l-1.41 1.41a1 1 0 01-1.42 0z"/></svg>',
     moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
     share:'<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 100-6 3 3 0 00-3 3c0 .24.04.47.09.7L8.04 9.81A3 3 0 003 12a3 3 0 005.04 2.19l7.12 4.16c-.05.21-.08.43-.08.65a2.92 2.92 0 102.92-2.92z"/></svg>',
-    qr:   '<svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 16h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm0-4h2v2h-2v-2zm-2 0h-2 4-2zm2 0h2v2h-2v-2z"/></svg>'
+    qr:   '<svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 16h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm0-4h2v2h-2v-2zm-2 0h-2 4-2zm2 0h2v2h-2v-2z"/></svg>',
+    star: '<svg viewBox="0 0 24 24"><path d="M12 17.27l5.18 3.12-1.37-5.9 4.58-3.97-6.03-.52L12 4.5 9.64 10l-6.03.52 4.58 3.97-1.37 5.9z"/></svg>'
   };
 
   /* ---------- theme ---------- */
@@ -64,10 +65,17 @@
     if (saveEl) {
       try { vcard = decodeURIComponent(saveEl.getAttribute("href").split(",")[1]); } catch (e) {}
     }
+    var locEl = doc.querySelector(".loc-v");
+    var mailEl = doc.querySelector("a[href^='mailto:']");
+    var email = mailEl
+      ? mailEl.getAttribute("href").replace(/^mailto:/, "").split("?")[0]
+      : "contact@euro-campus.com";
     return {
       isCard: !!saveEl,
       name: nameEl ? nameEl.textContent.trim() : (doc.title || "Euro Campus"),
       role: roleEl ? roleEl.textContent.trim() : "",
+      office: locEl ? locEl.textContent.trim() : "",
+      email: email,
       vcard: vcard
     };
   }
@@ -133,6 +141,97 @@
     return open;
   }
 
+  /* ---------- review (mailto) ---------- */
+  function buildReviewModal(info) {
+    var overlay = el("div", "ec-modal ec-review");
+    var card = el("div", "ec-modal-card");
+
+    card.appendChild(el("div", "ec-modal-title", "Laisser un avis"));
+    card.appendChild(el("div", "ec-modal-sub",
+      "Évaluez votre expérience avec " + info.name + (info.role ? " · " + info.role : "") + "."));
+
+    // star rating
+    var rating = 0;
+    var stars = el("div", "ec-stars");
+    var starEls = [];
+    function paint(n) {
+      for (var i = 0; i < 5; i++) starEls[i].classList.toggle("on", i < n);
+    }
+    for (var i = 1; i <= 5; i++) {
+      (function (val) {
+        var s = el("button", "ec-star", ICONS.star);
+        s.type = "button";
+        s.setAttribute("aria-label", val + " étoile" + (val > 1 ? "s" : ""));
+        s.addEventListener("mouseenter", function () { paint(val); });
+        s.addEventListener("focus", function () { paint(val); });
+        s.addEventListener("click", function () { rating = val; paint(val); });
+        starEls.push(s);
+        stars.appendChild(s);
+      })(i);
+    }
+    stars.addEventListener("mouseleave", function () { paint(rating); });
+    card.appendChild(stars);
+
+    // fields
+    var nameField = el("input", "ec-field");
+    nameField.type = "text";
+    nameField.placeholder = "Votre nom (optionnel)";
+    nameField.setAttribute("aria-label", "Votre nom");
+    card.appendChild(nameField);
+
+    var comment = el("textarea", "ec-field ec-textarea");
+    comment.placeholder = "Votre commentaire…";
+    comment.setAttribute("aria-label", "Votre commentaire");
+    card.appendChild(comment);
+
+    var hint = el("div", "ec-hint");
+    card.appendChild(hint);
+
+    var send = el("button", "ec-close", "Envoyer l'avis");
+    card.appendChild(send);
+
+    var cancel = el("button", "ec-cancel", "Annuler");
+    card.appendChild(cancel);
+
+    overlay.appendChild(card);
+    doc.body.appendChild(overlay);
+
+    function hide() { overlay.classList.remove("open"); }
+
+    send.addEventListener("click", function () {
+      if (!rating) {
+        hint.textContent = "Merci de choisir une note ★";
+        hint.classList.add("show");
+        return;
+      }
+      var fullStars = "";
+      for (var k = 0; k < 5; k++) fullStars += (k < rating ? "★" : "☆");
+
+      var who = nameField.value.trim();
+
+      // build the body as blank-line-separated sections (kept tidy in any mail app)
+      var head = "Avis pour : " + info.name + (info.role ? " (" + info.role + ")" : "");
+      if (info.office) head += "\r\nBureau : " + info.office;
+      var note = "Note : " + fullStars + "  (" + rating + "/5)";
+      var body = "Commentaire :\r\n" + (comment.value.trim() || "(aucun)");
+      var foot = (who ? "De la part de : " + who + "\r\n" : "") + "— Envoyé depuis la carte Euro Campus";
+
+      var subject = "Avis client — " + info.name + (info.role ? " (" + info.role + ")" : "");
+      var href = "mailto:" + info.email +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent([head, note, body, foot].join("\r\n\r\n"));
+      window.location.href = href;
+      toast("Ouverture de votre messagerie…");
+      hide();
+    });
+
+    cancel.addEventListener("click", hide);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) hide(); });
+    doc.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
+
+    return function open() { overlay.classList.add("open"); };
+  }
+
   /* ---------- toolbar ---------- */
   function build() {
     var info = readCard();
@@ -183,6 +282,19 @@
     } else {
       bar.classList.add("ec-floating");
       doc.body.appendChild(bar);
+    }
+
+    // Review CTA at the bottom of the card
+    if (info.isCard) {
+      var page = doc.querySelector(".page");
+      if (page) {
+        var openReview = buildReviewModal(info);
+        var reviewBtn = el("button", "ec-review-btn", ICONS.star + "<span>Laisser un avis</span>");
+        reviewBtn.type = "button";
+        reviewBtn.addEventListener("click", openReview);
+        var divider = page.querySelector(".divider");
+        page.insertBefore(reviewBtn, divider || null);
+      }
     }
   }
 
