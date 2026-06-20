@@ -5,6 +5,9 @@
    it overrides only CSS variables, never the page markup.
    ========================================================= */
 
+/* ---- Photo avatar (fills the hero avatar circle/rounded square) ---- */
+.avatar img{ width:100%; height:100%; object-fit:cover; border-radius:inherit; display:block; }
+
 /* ---- Toolbar ----
    On cards it sits inside the header bar (normal flow, never overlaps).
    On the directory (no header bar) it floats in the top-right corner. */
