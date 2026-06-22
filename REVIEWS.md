@@ -3,18 +3,26 @@
 The site stores everything in a Google Sheet you own, through a single Apps Script Web App. It powers
 three things, all free and unlimited:
 
-1. **Reviews** — each card's review form logs a row (rating + comment).
+1. **Reviews** — each card's review form logs a row (rating + comment). A honeypot + 60-second
+   de-dupe drop obvious spam silently.
 2. **Usage analytics** — every card view / share / QR / save-contact / review-open is counted, so the
    dashboard shows how often each card is actually used (plus a 30-day trend).
 3. **Editable cards** — an admin can edit each person's content from the dashboard (name, role,
-   department, office, map link, phone, email, WhatsApp, LinkedIn, avatar initials); the cards render
-   that content live. Writes are protected by a server-checked admin password.
+   department, office, map link, phone, email, WhatsApp, LinkedIn, avatar initials), **upload a photo**
+   for each card, and **retire / reactivate** a card (hides it from the directory without ever changing
+   its link). The cards render that content live. Writes are protected by a server-checked admin
+   password, exchanged at login for a short-lived session token.
+
+There are **15 fixed cards** (`employe-01` … `employe-15`), one per NFC chip. Their links never change —
+the editor only changes the *content* shown on a card, never its address — so the programmed chips keep
+working. When someone leaves, you reassign their card (edit name/role/photo); the link stays identical.
 
 Until you connect the backend, everything **degrades gracefully**: the review form falls back to the
 visitor's mail app, analytics simply read 0, and cards show their built-in HTML defaults.
 
 The Sheet uses these tabs (created automatically): `Avis` (reviews), `Dashboard` (live review
-summary), `Vues` (per-card counters), `Evenements` (raw event log), `Employes` (editable card content).
+summary), `Vues` (per-card counters), `Evenements` (raw event log), `Employes` (editable card content),
+`Photos` (uploaded avatars, one small image per card).
 
 ---
 
@@ -29,19 +37,36 @@ In the sheet: **Extensions → Apps Script**, delete the sample code, and paste 
    EURO CAMPUS — reviews + analytics + editable cards
    ============================================================ */
 
+// Columns are matched by HEADER NAME, never by position, so the sheet can gain
+// new columns (or you can reorder them) without breaking reads/writes.
 var EMP_HEADERS = ['Slug','Nom','Poste','Département','Bureau','MapURL','Téléphone',
-                   'Email','WhatsApp','LinkedIn','Initiales','Mis à jour'];
-var EMP_KEYS    = ['slug','nom','poste','departement','bureau','mapurl','telephone',
-                   'email','whatsapp','linkedin','initiales','maj'];
+                   'Email','WhatsApp','LinkedIn','Initiales','Mis à jour','Actif'];
+var HEADER_KEY  = { 'Slug':'slug','Nom':'nom','Poste':'poste','Département':'departement',
+                    'Bureau':'bureau','MapURL':'mapurl','Téléphone':'telephone','Email':'email',
+                    'WhatsApp':'whatsapp','LinkedIn':'linkedin','Initiales':'initiales',
+                    'Mis à jour':'maj','Actif':'actif' };
+// Fields the editor is allowed to write (param name → column header).
+var EDITABLE = { nom:'Nom', poste:'Poste', departement:'Département', bureau:'Bureau',
+                 mapurl:'MapURL', telephone:'Téléphone', email:'Email', whatsapp:'WhatsApp',
+                 linkedin:'LinkedIn', initiales:'Initiales' };
 
 /* ---------- WRITE endpoint ---------- */
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (data.type === 'event') return recordEvent_(ss, data);
+    if (data.type === 'event')     return recordEvent_(ss, data);
+    if (data.type === 'savephoto') return json_(savephoto_(data));
 
     // default: a review
+    // Spam guard 1 — honeypot: real users never fill the hidden field.
+    if (String(data.hp || '').trim() !== '') return json_({ ok:true });
+    // Spam guard 2 — drop a near-identical resubmit within 60s (double-tap / bot loop).
+    var sig = 'rv_' + shortHash_(String(data.employee||'') + '|' + String(data.rating||'') + '|' + String(data.comment||''));
+    var cache = CacheService.getScriptCache();
+    if (cache.get(sig)) return json_({ ok:true });
+    cache.put(sig, '1', 60);
+
     var sheet = ss.getSheetByName('Avis') || ss.insertSheet('Avis');
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(['Date','Employé','Poste','Bureau','Note','Commentaire','Client','Page']);
@@ -53,6 +78,11 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok:false, error:String(err) });
   }
+}
+
+function shortHash_(s) {
+  var raw = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, s, Utilities.Charset.UTF_8);
+  return raw.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
 }
 
 function recordEvent_(ss, data) {
@@ -98,9 +128,13 @@ function doGet(e) {
   var out;
   if      (action === 'employees') out = employees_();
   else if (action === 'employee')  out = employee_(p.slug);
+  else if (action === 'photo')     out = photo_(p.slug);
+  else if (action === 'photos')    out = photos_();
   else if (action === 'views')     out = views_();
   else if (action === 'dashboard') out = dashboard_();
+  else if (action === 'login')     out = login_(p);
   else if (action === 'save')      out = save_(p);
+  else if (action === 'setactive') out = setactive_(p);
   else                             out = stats_();
   var payload = JSON.stringify(out);
   var body = cb ? cb + '(' + payload + ')' : payload;
@@ -223,19 +257,45 @@ function trend_() {
 }
 
 /* ---------- editable card content (Employes) ---------- */
+// Opens the sheet and BACK-FILLS any missing column headers (e.g. the new
+// "Actif") without ever moving or clearing existing data.
 function empSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Employes');
-  if (!sh) { sh = ss.insertSheet('Employes'); sh.appendRow(EMP_HEADERS); }
+  if (!sh) { sh = ss.insertSheet('Employes'); sh.appendRow(EMP_HEADERS); return sh; }
+  var lastCol = sh.getLastColumn();
+  var have = lastCol ? sh.getRange(1,1,1,lastCol).getValues()[0].map(function (h) { return String(h).trim(); }) : [];
+  EMP_HEADERS.forEach(function (h) {
+    if (have.indexOf(h) === -1) { sh.getRange(1, sh.getLastColumn()+1).setValue(h); have.push(h); }
+  });
   return sh;
+}
+// header name → 1-based column index, read from row 1.
+function headerMap_(sh) {
+  var lastCol = sh.getLastColumn();
+  var heads = sh.getRange(1,1,1,lastCol).getValues()[0], map = {};
+  for (var i=0;i<heads.length;i++) map[String(heads[i]).trim()] = i+1;
+  return map;
+}
+// blank cell = active (so the original rows count as active without editing).
+function activeBool_(v) {
+  if (v === '' || v == null || v === true) return true;
+  if (v === false) return false;
+  var s = String(v).trim().toLowerCase();
+  return !(s === 'false' || s === 'non' || s === '0' || s === 'no');
 }
 function readEmployees_() {
   var sh = empSheet_(), out = [];
   if (sh.getLastRow() < 2) return out;
-  sh.getRange(2,1,sh.getLastRow()-1,EMP_HEADERS.length).getValues().forEach(function (r) {
-    if (!String(r[0]).trim()) return;
+  var hm = headerMap_(sh), slugCol = hm['Slug'];
+  var rows = sh.getRange(2,1,sh.getLastRow()-1,sh.getLastColumn()).getValues();
+  rows.forEach(function (r) {
+    if (slugCol && !String(r[slugCol-1]).trim()) return;
     var o = {};
-    for (var i=0;i<EMP_KEYS.length;i++) o[EMP_KEYS[i]] = (r[i]==null ? '' : String(r[i]));
+    for (var h in HEADER_KEY) {
+      var col = hm[h], v = (col && r[col-1] != null) ? r[col-1] : '';
+      o[HEADER_KEY[h]] = (h === 'Actif') ? activeBool_(v) : String(v);
+    }
     out.push(o);
   });
   return out;
@@ -249,31 +309,130 @@ function employee_(slug) {
 }
 
 function save_(p) {
-  var stored = PropertiesService.getScriptProperties().getProperty('ADMIN_HASH') || '';
-  if (!stored || String(p.token||'') !== stored) return { ok:false, error:'auth' };
+  var auth = checkAuth_(p);
+  if (!auth.ok) return auth;
   var slug = String(p.slug||'').trim();
   if (!slug) return { ok:false, error:'no slug' };
   var lock = LockService.getScriptLock();
   try { lock.waitLock(20000); } catch (e) { return { ok:false, error:'busy' }; }
   try {
-    var sh = empSheet_();
+    var sh = empSheet_(), hm = headerMap_(sh), slugCol = hm['Slug'];
     var values = sh.getDataRange().getValues();
     var rowIndex = -1;
-    for (var i=1;i<values.length;i++){ if (String(values[i][0]).trim() === slug){ rowIndex=i+1; break; } }
-    var paramToCol = { nom:2, poste:3, departement:4, bureau:5, mapurl:6, telephone:7,
-                       email:8, whatsapp:9, linkedin:10, initiales:11 };
+    for (var i=1;i<values.length;i++){ if (String(values[i][slugCol-1]).trim() === slug){ rowIndex=i+1; break; } }
     if (rowIndex === -1) {
-      var row = []; for (var c=0;c<EMP_HEADERS.length;c++) row.push('');
-      row[0] = slug;
-      for (var k in paramToCol) if (p[k] != null) row[paramToCol[k]-1] = p[k];
-      row[11] = new Date();
+      var row = []; for (var c=0;c<sh.getLastColumn();c++) row.push('');
+      row[slugCol-1] = slug;
+      for (var k in EDITABLE) if (p[k] != null && hm[EDITABLE[k]]) row[hm[EDITABLE[k]]-1] = p[k];
+      if (hm['Mis à jour']) row[hm['Mis à jour']-1] = new Date();
       sh.appendRow(row);
     } else {
-      for (var k2 in paramToCol) if (p[k2] != null) sh.getRange(rowIndex, paramToCol[k2]).setValue(p[k2]);
-      sh.getRange(rowIndex, 12).setValue(new Date());
+      for (var k2 in EDITABLE) if (p[k2] != null && hm[EDITABLE[k2]]) sh.getRange(rowIndex, hm[EDITABLE[k2]]).setValue(p[k2]);
+      if (hm['Mis à jour']) sh.getRange(rowIndex, hm['Mis à jour']).setValue(new Date());
     }
     return { ok:true };
   } finally { lock.releaseLock(); }
+}
+
+// Soft retire / reactivate — flips the "Actif" flag. The card's page + link
+// are never touched, so a retired card still works; it just drops out of the
+// internal directory until you reactivate (or reassign) it.
+function setactive_(p) {
+  var auth = checkAuth_(p);
+  if (!auth.ok) return auth;
+  var slug = String(p.slug||'').trim();
+  if (!slug) return { ok:false, error:'no slug' };
+  var active = activeBool_(p.active);
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(20000); } catch (e) { return { ok:false, error:'busy' }; }
+  try {
+    var sh = empSheet_(), hm = headerMap_(sh), slugCol = hm['Slug'], actifCol = hm['Actif'];
+    var values = sh.getDataRange().getValues();
+    for (var i=1;i<values.length;i++){
+      if (String(values[i][slugCol-1]).trim() === slug){
+        sh.getRange(i+1, actifCol).setValue(active);
+        if (hm['Mis à jour']) sh.getRange(i+1, hm['Mis à jour']).setValue(new Date());
+        return { ok:true };
+      }
+    }
+    return { ok:false, error:'not found' };
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- uploaded photos (Photos tab) ---------- */
+// Photos are kept in their own tab (one small data-URI per slug) so the
+// employee payload stays light. The dashboard shrinks each image to a small
+// square JPEG before upload, so a cell stays well under the size limit.
+function photoSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Photos');
+  if (!sh) { sh = ss.insertSheet('Photos'); sh.appendRow(['Slug','DataURI','Mis à jour']); }
+  return sh;
+}
+function photo_(slug) {
+  slug = String(slug||'').trim();
+  if (!slug) return { ok:true, photo:'' };
+  var sh = photoSheet_();
+  if (sh.getLastRow() < 2) return { ok:true, photo:'' };
+  var values = sh.getRange(2,1,sh.getLastRow()-1,2).getValues();
+  for (var i=0;i<values.length;i++) if (String(values[i][0]).trim() === slug) return { ok:true, photo:String(values[i][1]||'') };
+  return { ok:true, photo:'' };
+}
+function photos_() {
+  var sh = photoSheet_(), map = {};
+  if (sh.getLastRow() >= 2) {
+    sh.getRange(2,1,sh.getLastRow()-1,2).getValues().forEach(function (r) {
+      var slug = String(r[0]).trim(); if (slug) map[slug] = String(r[1]||'');
+    });
+  }
+  return { ok:true, photos:map };
+}
+function savephoto_(p) {
+  var auth = checkAuth_(p);
+  if (!auth.ok) return auth;
+  var slug = String(p.slug||'').trim();
+  if (!slug) return { ok:false, error:'no slug' };
+  var datauri = String(p.datauri||'');
+  if (datauri !== '' && datauri.indexOf('data:image/') !== 0) return { ok:false, error:'bad image' };
+  if (datauri.length > 200000) return { ok:false, error:'too large' };
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(20000); } catch (e) { return { ok:false, error:'busy' }; }
+  try {
+    var sh = photoSheet_();
+    var values = sh.getLastRow() >= 2 ? sh.getRange(2,1,sh.getLastRow()-1,1).getValues() : [];
+    var rowIndex = -1;
+    for (var i=0;i<values.length;i++) if (String(values[i][0]).trim() === slug) { rowIndex = i+2; break; }
+    if (datauri === '') {                       // empty = remove the photo
+      if (rowIndex !== -1) sh.deleteRow(rowIndex);
+      return { ok:true };
+    }
+    if (rowIndex === -1) sh.appendRow([slug, datauri, new Date()]);
+    else { sh.getRange(rowIndex,2).setValue(datauri); sh.getRange(rowIndex,3).setValue(new Date()); }
+    return { ok:true };
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- admin auth (session tokens) ---------- */
+// The long-lived admin hash is sent at most once (login) and exchanged for a
+// short-lived session id. Writes then carry the session id, not the password,
+// so the secret no longer rides in every save URL / log line.
+function login_(p) {
+  var stored = PropertiesService.getScriptProperties().getProperty('ADMIN_HASH') || '';
+  if (!stored || String(p.token||'') !== stored) return { ok:false, error:'auth' };
+  var sid = Utilities.getUuid().replace(/-/g,'') + Math.random().toString(36).slice(2);
+  CacheService.getScriptCache().put('sess_' + sid, '1', 1800);   // 30-min TTL
+  return { ok:true, session: sid };
+}
+function checkAuth_(p) {
+  if (p.session) {
+    var cache = CacheService.getScriptCache(), key = 'sess_' + String(p.session);
+    if (cache.get(key)) { cache.put(key, '1', 1800); return { ok:true }; }   // sliding window
+    return { ok:false, error:'auth' };
+  }
+  // Back-compat: a direct admin hash still works.
+  var stored = PropertiesService.getScriptProperties().getProperty('ADMIN_HASH') || '';
+  if (stored && String(p.token||'') === stored) return { ok:true };
+  return { ok:false, error:'auth' };
 }
 
 /* ---------- review summary tab (unchanged) ---------- */
@@ -364,19 +523,30 @@ person. Saving writes to the `Employes` tab; the profile pages and directory pic
 on their next load (rendered live from the Sheet). The avatar **initials**, **name/role/department**,
 **office + map link**, **phone/WhatsApp/email/LinkedIn**, and the generated **vCard** all update.
 
+- **Photo:** in **Modifier**, click **Téléverser une photo** — the image is shrunk to a small square in
+  your browser and stored (in the `Photos` tab) for that card; the profile page and directory show it
+  in place of the initials. **Retirer la photo** clears it (back to initials).
+- **Retire / reactivate:** **Retirer** hides a card from the internal directory (its page + NFC link
+  still work); **Réactiver** brings it back. Handy while a card is between employees.
+
 ## Notes
 - **Updating the script later:** **Deploy → Manage deployments → Edit → Version: New version** so the
-  `/exec` URL stays the same (a brand-new deployment makes a new URL).
-- **Auth:** the password never leaves the browser in plaintext — only its SHA-256 hash is sent and
-  compared to `ADMIN_HASH` in Script Properties. Keep that hash out of the repo. The public passcode
-  gate (`assets/gate.js`) still controls read access; `ADMIN_HASH` is what guards edits.
+  `/exec` URL stays the same (a brand-new deployment makes a new URL). The new `Actif` column and
+  `Photos` tab are created/back-filled automatically on first use — **existing data is never cleared
+  or moved** (columns are matched by header name, so don't re-run `seedEmployees`, which overwrites).
+- **Auth:** the password never leaves the browser in plaintext — only its SHA-256 hash is sent, once,
+  at login; the server returns a short-lived **session token** (30 min) that writes use instead. So the
+  password hash no longer rides in every save URL. Keep `ADMIN_HASH` out of the repo. The public
+  passcode gate (`assets/gate.js`) still controls read access; `ADMIN_HASH` is what guards edits.
 - **Clearing a field:** because cards keep their built-in HTML when a Sheet field is blank, emptying a
   field in the editor reverts that field to its static default rather than showing nothing.
 - **Social-share previews:** WhatsApp/Facebook link-preview text comes from each page's static OG meta
   tags (read by crawlers before JS), so those previews keep the original text until the HTML is
   regenerated — the visible page itself always reflects the latest Sheet content.
-- **Privacy / CORS:** reviews and events submit fire-and-forget (`mode:no-cors`); reads and saves use
-  JSONP so the browser can see the result. If submissions ever fail, the review form falls back to the
-  mail app so nothing is lost.
-- **Spam:** the endpoint is public by nature. If you get spam, ask and I'll add a honeypot + rate check.
+- **Privacy / CORS:** reviews, events and photo uploads submit fire-and-forget (`mode:no-cors`); reads,
+  saves and retire use JSONP so the browser can see the result. After a photo upload the dashboard
+  re-reads it to confirm it stuck. If a review submission ever fails, the form falls back to the mail
+  app so nothing is lost.
+- **Spam:** the review endpoint has a hidden honeypot field and drops near-duplicate resubmits within
+  60 seconds; the form also ignores submissions made in under a second. No CAPTCHA needed.
 ```

@@ -128,7 +128,14 @@
   }
 
   // ── render + analytics fill ──
-  var viewsData=null, statsByName=null;
+  var viewsData=null, statsByName=null, photosBySlug=null;
+  function fillPhotos(){
+    if(!photosBySlug) return;
+    document.querySelectorAll(".card").forEach(function(card){
+      var uri=photosBySlug[card.getAttribute("data-slug")];
+      if(uri){ var av=card.querySelector(".av"); if(av) av.innerHTML='<img src="'+uri+'" alt="">'; }
+    });
+  }
   function fillViews(cards){
     document.querySelectorAll(".card").forEach(function(card){
       var c=cards[card.getAttribute("data-slug")]||{};
@@ -143,7 +150,7 @@
       var el=card.querySelector(".u-rate"); if(el)el.textContent=s?"· ★ "+s.avg.toFixed(1)+" ("+s.count+")":"";
     });
   }
-  function applyCounters(){ if(viewsData)fillViews(viewsData); if(statsByName)fillStats(statsByName); }
+  function applyCounters(){ if(viewsData)fillViews(viewsData); if(statsByName)fillStats(statsByName); if(photosBySlug)fillPhotos(); }
 
   function render(list){
     g.innerHTML="";
@@ -166,10 +173,19 @@
   render(people); // instant render from the hardcoded fallback
 
   // Live employee list (overrides the fallback if reachable).
+  // Retired cards (Actif = FALSE) drop out of this internal directory; their
+  // page + NFC link still work, they're just hidden here until reactivated.
   jsonp(ENDPOINT+"?action=employees", function(data){
     if(data && data.ok && data.employees && data.employees.length){
-      render(data.employees.map(fromEmployee));
+      var active=data.employees.filter(function(e){ return e.actif!==false; });
+      render(active.map(fromEmployee));
+      var badge=document.querySelector(".badge");
+      if(badge) badge.textContent=active.length+" carte"+(active.length>1?"s":"")+" active"+(active.length>1?"s":"");
     }
+  });
+  // Uploaded avatars (slug → data-URI). Applied on top of whatever is rendered.
+  jsonp(ENDPOINT+"?action=photos", function(data){
+    if(data && data.ok && data.photos){ photosBySlug=data.photos; fillPhotos(); }
   });
   // Per-card usage counters.
   jsonp(ENDPOINT+"?action=views", function(data){

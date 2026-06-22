@@ -136,12 +136,24 @@
     }
     if (r.nom) doc.title = r.nom + " — Euro Campus";
   }
+  function applyPhoto(uri) {
+    if (!uri) return;
+    var av = doc.querySelector(".avatar");
+    if (!av) return;
+    var img = av.querySelector("img");
+    if (img) { img.setAttribute("src", uri); }
+    else { av.innerHTML = '<img src="' + uri + '" alt="">'; }
+  }
   function hydrateCard(info) {
     if (!REVIEW_ENDPOINT || !info.isCard) return;
     var slug = slugFromPath();
     if (!slug) return;
     jsonp(REVIEW_ENDPOINT + "?action=employee&slug=" + encodeURIComponent(slug), function (data) {
       if (data && data.ok && data.employee) applyEmployee(info, data.employee);
+    });
+    // Uploaded photo (kept in the Photos tab) overrides the static avatar image.
+    jsonp(REVIEW_ENDPOINT + "?action=photo&slug=" + encodeURIComponent(slug), function (data) {
+      if (data && data.ok && data.photo) applyPhoto(data.photo);
     });
   }
 
@@ -273,6 +285,18 @@
     comment.setAttribute("aria-label", "Votre commentaire");
     card.appendChild(comment);
 
+    // Honeypot: hidden from people, but bots tend to fill every field. Kept
+    // off-screen (not display:none) and out of the tab order. The server drops
+    // any submission where this is non-empty.
+    var honey = el("input", "ec-hp");
+    honey.type = "text";
+    honey.tabIndex = -1;
+    honey.setAttribute("autocomplete", "off");
+    honey.setAttribute("aria-hidden", "true");
+    honey.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none";
+    card.appendChild(honey);
+    var openedAt = Date.now();   // for the "too fast to be human" check
+
     var hint = el("div", "ec-hint");
     card.appendChild(hint);
 
@@ -317,6 +341,14 @@
         hide();
       }
 
+      // Spam guards: a filled honeypot or an implausibly fast submit (< 1s)
+      // is almost certainly a bot — pretend it worked, but send nothing.
+      if (honey.value || (Date.now() - openedAt) < 1000) {
+        toast("Merci pour votre avis ✓");
+        hide();
+        return;
+      }
+
       // No backend configured → use the mail-app fallback.
       if (!REVIEW_ENDPOINT) { mailtoFallback(); return; }
 
@@ -328,6 +360,7 @@
         rating: rating,
         comment: comment.value.trim(),
         reviewer: who,
+        hp: honey.value,
         url: location.href
       };
       send.disabled = true;
@@ -350,7 +383,7 @@
     overlay.addEventListener("click", function (e) { if (e.target === overlay) hide(); });
     doc.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
 
-    return function open() { overlay.classList.add("open"); };
+    return function open() { openedAt = Date.now(); overlay.classList.add("open"); };
   }
 
   /* ---------- toolbar ---------- */
