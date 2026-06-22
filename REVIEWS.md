@@ -310,7 +310,7 @@ function setAdminPassword() {
 }
 
 // Run once to populate the Employes tab with the 15 cards. Edit the rest from the dashboard afterwards.
-function seedEmployees_() {
+function seedEmployees() {
   var sh = empSheet_();
   if (sh.getLastRow() > 1) sh.getRange(2,1,sh.getLastRow()-1,EMP_HEADERS.length).clearContent();
   var now = new Date();
@@ -342,7 +342,7 @@ In the Apps Script editor's function dropdown:
 1. Put your password in `setAdminPassword` (the `password` variable), pick it in the dropdown, click
    **Run ▶**, approve the permission prompt — then **delete the password from the code** and Save (only
    the hash is kept, in Script Properties).
-2. Run **`seedEmployees_`** once to create the 15 card rows. (Run **`setupDashboard`** too if you want
+2. Run **`seedEmployees`** once to create the 15 card rows. (Run **`setupDashboard`** too if you want
    the review-summary tab before the first review.)
 
 ## 4. Deploy as a Web App
