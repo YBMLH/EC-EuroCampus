@@ -85,8 +85,21 @@
     .ed-who{flex:1;min-width:0}
     .ed-who .nm{font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ed-who .rl{font-size:.74rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ed-av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+    .ed-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
     .ed-btn{flex-shrink:0;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--teal-pale);color:var(--teal-deep);font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer}
     .ed-btn:hover{background:#d7eff2}
+    .ed-btn.off{background:transparent;color:#d9534f;border-color:rgba(217,83,79,.3)}
+    .ed-btn.re{background:#eafaf0;color:#2e9e5b;border-color:rgba(46,158,91,.3)}
+    .ed-row.off{opacity:.55}
+    .ed-row.off .nm::after{content:" · retirée";color:#d9534f;font-weight:700;font-size:.74rem}
+    /* photo uploader inside the edit modal */
+    .ef-photo{display:flex;align-items:center;gap:14px;margin:8px 0 2px;text-align:left}
+    .ef-photo .pv{width:64px;height:64px;border-radius:16px;flex-shrink:0;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
+    .ef-photo .pv img{width:100%;height:100%;object-fit:cover;display:block}
+    .ph-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--teal-pale);color:var(--teal-deep);font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer}
+    .ph-btn.rm{background:transparent;color:#d9534f;border-color:rgba(217,83,79,.3)}
+    .ef-photo .phint{font-size:.66rem;color:var(--muted);margin-top:5px;line-height:1.35}
     .adminbar{background:#fff8e6;border:1px solid #f0d98a;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.84rem;color:#7a5d00}
     .adminbar.ok{background:var(--teal-pale);border-color:rgba(30,169,186,.4);color:var(--teal-deep)}
     .adminbar .arow{display:flex;gap:8px;margin-top:10px}
@@ -157,7 +170,11 @@
 <script>
   // Same Apps Script Web App URL (GET via JSONP for reads + authenticated save).
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
-  var ADMIN_KEY = "ec-admin-hash";
+  // The admin password hash is exchanged once (login) for a short-lived session
+  // id; only the session id is stored + sent on writes, never the password.
+  var SESSION_KEY = "ec-admin-session";
+  function adminSession(){ try{ return sessionStorage.getItem(SESSION_KEY)||""; }catch(e){ return ""; } }
+  function clearSession(){ try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){} }
 
   /* ---------- helpers ---------- */
   function $(id){ return document.getElementById(id); }
@@ -189,6 +206,56 @@
   function sha256Hex(str){
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(buf){
       return Array.prototype.map.call(new Uint8Array(buf), function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+    });
+  }
+
+  /* ---------- photo upload: shrink client-side to a small square JPEG ---------- */
+  function resizeImage(file, maxSide, cb){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.naturalWidth, h=img.naturalHeight;
+        if(!w||!h){ cb(null); return; }
+        var src=Math.min(w,h), sx=(w-src)/2, sy=(h-src)/2;   // centre square crop
+        var side=Math.min(maxSide, src);
+        var canvas=document.createElement("canvas");
+        canvas.width=side; canvas.height=side;
+        var ctx=canvas.getContext("2d");
+        ctx.drawImage(img, sx, sy, src, src, 0, 0, side, side);
+        var q=0.72, uri=canvas.toDataURL("image/jpeg", q);
+        while(uri.length>45000 && q>0.4){ q-=0.1; uri=canvas.toDataURL("image/jpeg", q); }
+        cb(uri);
+      };
+      img.onerror=function(){ cb(null); };
+      img.src=ev.target.result;
+    };
+    reader.onerror=function(){ cb(null); };
+    reader.readAsDataURL(file);
+  }
+  // POST the photo (data-URI in the body, so no URL-length limit), then confirm
+  // by reading it back (Apps Script POST responses aren't readable cross-origin).
+  function savePhoto(slug, datauri, session, cb){
+    fetch(ENDPOINT, {
+      method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"savephoto", slug:slug, datauri:datauri, session:session})
+    }).then(function(){ confirmPhoto(slug, datauri, cb, 0); })
+      .catch(function(){ cb(false); });
+  }
+  function confirmPhoto(slug, datauri, cb, tries){
+    jsonp(ENDPOINT+"?action=photo&slug="+encodeURIComponent(slug), function(data){
+      var saved = data && data.ok && (data.photo||"") === datauri;
+      if(saved){ cb(true); return; }
+      if(tries>=3){ cb(false); return; }
+      setTimeout(function(){ confirmPhoto(slug, datauri, cb, tries+1); }, 900);
+    });
+  }
+  // Retire / reactivate a card (hides it from the directory; link still works).
+  function setActive(slug, active, cb){
+    var session=adminSession(); if(!session){ cb(false,"auth"); return; }
+    jsonp(ENDPOINT+"?action=setactive&session="+encodeURIComponent(session)+
+          "&slug="+encodeURIComponent(slug)+"&active="+(active?"true":"false"), function(data){
+      cb(!!(data&&data.ok), data&&data.error);
     });
   }
 
@@ -340,6 +407,7 @@
 
   /* ===================== EDITOR ===================== */
   var EMPLOYEES = [];
+  var PHOTOS = {};
   var FIELDS = [
     {k:"nom",        l:"Nom",            full:true},
     {k:"poste",      l:"Poste"},
@@ -350,14 +418,12 @@
     {k:"whatsapp",   l:"WhatsApp"},
     {k:"email",      l:"Email", full:true},
     {k:"linkedin",   l:"LinkedIn", full:true},
-    {k:"initiales",  l:"Initiales (avatar)"}
+    {k:"initiales",  l:"Initiales (sans photo)"}
   ];
-
-  function adminHash(){ try{ return sessionStorage.getItem(ADMIN_KEY)||""; }catch(e){ return ""; } }
 
   function renderEditor(){
     var ed=$("editor");
-    var authed=!!adminHash();
+    var authed=!!adminSession();
     var bar='<div class="adminbar'+(authed?" ok":"")+'">'+
       (authed
         ? '🔓 Mode édition actif. Les modifications sont enregistrées dans la feuille et apparaissent sur les cartes.'+
@@ -372,28 +438,59 @@
       listHtml='<div class="state">Aucune fiche dans la feuille « Employes ».<br><b>Exécutez seedEmployees() dans Apps Script pour les créer.</b></div>';
     } else {
       EMPLOYEES.forEach(function(e,i){
-        listHtml+='<div class="ed-row">'+
-          '<div class="ed-av">'+escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase())+'</div>'+
+        var retired=(e.actif===false), ph=PHOTOS[e.slug];
+        var avInner = ph ? '<img src="'+ph+'" alt="">'
+                         : escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
+        listHtml+='<div class="ed-row'+(retired?" off":"")+'">'+
+          '<div class="ed-av">'+avInner+'</div>'+
           '<div class="ed-who"><div class="nm">'+escapeHtml(e.nom||e.slug)+'</div>'+
             '<div class="rl">'+escapeHtml([e.poste,e.bureau].filter(Boolean).join(" · "))+'</div></div>'+
-          (authed?'<button class="ed-btn" data-i="'+i+'">Modifier</button>':'')+
+          (authed?'<div class="ed-actions">'+
+            '<button class="ed-btn" data-i="'+i+'">Modifier</button>'+
+            (retired
+              ? '<button class="ed-btn re" data-act="'+i+'">Réactiver</button>'
+              : '<button class="ed-btn off" data-act="'+i+'">Retirer</button>')+
+           '</div>':'')+
         '</div>';
       });
     }
     ed.innerHTML=bar+listHtml;
 
     if(authed){
-      var lo=$("logout"); if(lo) lo.addEventListener("click", function(ev){ ev.preventDefault(); try{sessionStorage.removeItem(ADMIN_KEY);}catch(e){} renderEditor(); });
-      ed.querySelectorAll(".ed-btn").forEach(function(b){ b.addEventListener("click", function(){ openEdit(parseInt(b.getAttribute("data-i"),10)); }); });
+      var lo=$("logout"); if(lo) lo.addEventListener("click", function(ev){ ev.preventDefault(); clearSession(); renderEditor(); });
+      ed.querySelectorAll(".ed-btn[data-i]").forEach(function(b){ b.addEventListener("click", function(){ openEdit(parseInt(b.getAttribute("data-i"),10)); }); });
+      ed.querySelectorAll(".ed-btn[data-act]").forEach(function(b){ b.addEventListener("click", function(){ toggleActive(parseInt(b.getAttribute("data-act"),10), b); }); });
     } else {
       var go=$("adm-go"), inp=$("adm-pass");
       function unlock(){
         var v=(inp.value||"").trim(); if(!v) return;
-        sha256Hex(v).then(function(h){ try{sessionStorage.setItem(ADMIN_KEY,h);}catch(e){} renderEditor(); });
+        go.disabled=true; go.textContent="…";
+        sha256Hex(v).then(function(h){
+          jsonp(ENDPOINT+"?action=login&token="+encodeURIComponent(h), function(data){
+            if(data && data.ok && data.session){
+              try{sessionStorage.setItem(SESSION_KEY,data.session);}catch(e){}
+              renderEditor();
+            } else {
+              go.disabled=false; go.textContent="Déverrouiller";
+              inp.value=""; inp.placeholder="Mot de passe incorrect — réessayez";
+            }
+          });
+        });
       }
       if(go) go.addEventListener("click", unlock);
       if(inp) inp.addEventListener("keydown", function(e){ if(e.key==="Enter") unlock(); });
     }
+  }
+
+  function toggleActive(i, btn){
+    var e=EMPLOYEES[i]; if(!e) return;
+    var makeActive=(e.actif===false);   // currently retired → reactivate
+    btn.disabled=true; btn.textContent="…";
+    setActive(e.slug, makeActive, function(ok, err){
+      if(ok){ e.actif=makeActive; renderEditor(); }
+      else if(err==="auth"){ clearSession(); renderEditor(); }
+      else { renderEditor(); }
+    });
   }
 
   function openEdit(i){
@@ -403,35 +500,75 @@
       return '<div class="'+(f.full?"full":"")+'"><label class="ef-lab">'+escapeHtml(f.l)+'</label>'+
         '<input class="ec-field" data-k="'+f.k+'" value="'+escapeHtml(e[f.k]||"")+'"/></div>';
     }).join("");
+    var curPhoto=PHOTOS[e.slug]||"";
+    var fallbackInit=escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
     m.querySelector(".ec-modal-card").innerHTML=
       '<div class="ec-modal-title">Modifier la fiche</div>'+
       '<div class="ec-modal-sub">'+escapeHtml(e.slug)+'</div>'+
+      '<div class="ef-photo">'+
+        '<div class="pv" id="ph-pv">'+(curPhoto?'<img src="'+curPhoto+'" alt="">':fallbackInit)+'</div>'+
+        '<div class="pbtns">'+
+          '<button class="ph-btn" id="ph-pick" type="button">Téléverser une photo</button>'+
+          '<button class="ph-btn rm" id="ph-rm" type="button"'+(curPhoto?'':' style="display:none"')+'>Retirer la photo</button>'+
+          '<div class="phint">Recadrée en petit carré. Sinon, les initiales sont utilisées.</div>'+
+        '</div>'+
+        '<input type="file" id="ph-file" accept="image/*" style="display:none"/>'+
+      '</div>'+
       '<div class="ef-grid">'+grid+'</div>'+
       '<div class="ec-hint" id="ed-hint" style="min-height:18px"></div>'+
       '<button class="ec-close" id="ed-save" type="button">Enregistrer</button>'+
       '<button class="ec-cancel" id="ed-cancel" type="button">Annuler</button>';
     m.classList.add("open");
     var hint=$("ed-hint"), save=$("ed-save");
+
+    // photo controls — pendingPhoto: undefined = unchanged, "" = remove, "data:…" = new
+    var pendingPhoto;
+    var pv=$("ph-pv"), pick=$("ph-pick"), rm=$("ph-rm"), file=$("ph-file");
+    pick.addEventListener("click", function(){ file.click(); });
+    file.addEventListener("change", function(){
+      var f=file.files && file.files[0]; if(!f) return;
+      hint.textContent=""; hint.classList.remove("show");
+      resizeImage(f, 256, function(uri){
+        if(!uri){ hint.textContent="Image illisible. Essayez un autre fichier."; hint.classList.add("show"); return; }
+        pendingPhoto=uri; pv.innerHTML='<img src="'+uri+'" alt="">'; rm.style.display="";
+      });
+    });
+    rm.addEventListener("click", function(){
+      pendingPhoto=""; pv.innerHTML=fallbackInit; rm.style.display="none"; file.value="";
+    });
+
     $("ed-cancel").addEventListener("click", function(){ m.classList.remove("open"); });
     save.addEventListener("click", function(){
-      var token=adminHash(); if(!token){ m.classList.remove("open"); renderEditor(); return; }
-      var url=ENDPOINT+"?action=save&token="+encodeURIComponent(token)+"&slug="+encodeURIComponent(e.slug);
-      m.querySelectorAll(".ec-field").forEach(function(inp){
+      var session=adminSession(); if(!session){ m.classList.remove("open"); renderEditor(); return; }
+      var url=ENDPOINT+"?action=save&session="+encodeURIComponent(session)+"&slug="+encodeURIComponent(e.slug);
+      m.querySelectorAll(".ec-field[data-k]").forEach(function(inp){
         url+="&"+inp.getAttribute("data-k")+"="+encodeURIComponent(inp.value.trim());
       });
-      save.disabled=true; save.textContent="Enregistrement…"; hint.textContent="";
+      save.disabled=true; save.textContent="Enregistrement…"; hint.textContent=""; hint.classList.remove("show");
       jsonp(url, function(data){
-        save.disabled=false; save.textContent="Enregistrer";
         if(data && data.ok){
-          // update local copy + UI
-          m.querySelectorAll(".ec-field").forEach(function(inp){ e[inp.getAttribute("data-k")]=inp.value.trim(); });
-          m.classList.remove("open"); renderEditor();
+          m.querySelectorAll(".ec-field[data-k]").forEach(function(inp){ e[inp.getAttribute("data-k")]=inp.value.trim(); });
+          if(pendingPhoto!==undefined){
+            save.textContent="Photo…";
+            savePhoto(e.slug, pendingPhoto, session, function(okp){
+              save.disabled=false; save.textContent="Enregistrer";
+              if(okp){
+                if(pendingPhoto) PHOTOS[e.slug]=pendingPhoto; else delete PHOTOS[e.slug];
+                m.classList.remove("open"); renderEditor();
+              } else {
+                hint.textContent="Fiche enregistrée, mais l'envoi de la photo a échoué. Réessayez."; hint.classList.add("show");
+              }
+            });
+          } else {
+            save.disabled=false; save.textContent="Enregistrer";
+            m.classList.remove("open"); renderEditor();
+          }
         } else if(data && data.error==="auth"){
-          try{sessionStorage.removeItem(ADMIN_KEY);}catch(x){}
-          hint.textContent="Mot de passe incorrect. Reconnectez-vous.";
-          hint.classList.add("show");
+          clearSession();
+          hint.textContent="Session expirée. Reconnectez-vous."; hint.classList.add("show");
           setTimeout(function(){ m.classList.remove("open"); renderEditor(); }, 1400);
         } else {
+          save.disabled=false; save.textContent="Enregistrer";
           hint.textContent="Échec de l'enregistrement. Réessayez."; hint.classList.add("show");
         }
       });
@@ -442,6 +579,10 @@
     jsonp(ENDPOINT+"?action=employees", function(data){
       EMPLOYEES = (data && data.ok && data.employees) ? data.employees : [];
       renderEditor();
+    });
+    jsonp(ENDPOINT+"?action=photos", function(data){
+      PHOTOS = (data && data.ok && data.photos) ? data.photos : {};
+      if(EMPLOYEES.length) renderEditor();
     });
   }
 
