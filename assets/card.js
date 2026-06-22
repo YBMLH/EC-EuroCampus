@@ -62,6 +62,101 @@
     t._timer = setTimeout(function () { t.classList.remove("show"); }, 2200);
   }
 
+  /* ---------- slug + JSONP helpers ---------- */
+  function slugFromPath() {
+    var f = (location.pathname.split("/").pop() || "").replace(/\.html?$/i, "");
+    return /^employe-/.test(f) ? f : "";
+  }
+  function jsonp(url, cb) {
+    var name = "_ecjp_" + Math.random().toString(36).slice(2);
+    var s = doc.createElement("script");
+    var done = false;
+    function finish(data) { if (done) return; done = true; try { cb(data); } catch (e) {} try { delete window[name]; } catch (e) { window[name] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); }
+    window[name] = function (data) { finish(data); };
+    s.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "callback=" + name + "&_=" + Date.now();
+    s.onerror = function () { finish(null); };
+    doc.body.appendChild(s);
+  }
+
+  /* ---------- usage analytics (fire-and-forget) ---------- */
+  function trackEvent(action, info) {
+    try {
+      if (!REVIEW_ENDPOINT) return;
+      var slug = slugFromPath();
+      if (!slug) return;
+      if (action === "view") {
+        var k = "ec-viewed-" + slug;
+        try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
+      }
+      fetch(REVIEW_ENDPOINT, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ type: "event", action: action, slug: slug, employee: (info && info.name) || "", url: location.href })
+      });
+    } catch (e) {}
+  }
+
+  /* ---------- live content from the Sheet (progressive enhancement) ---------- */
+  function buildVCard(r) {
+    var name = (r.nom || "").trim();
+    var parts = name.split(/\s+/);
+    var last = parts.length > 1 ? parts[parts.length - 1] : name;
+    var first = parts.length > 1 ? parts.slice(0, -1).join(" ") : "";
+    var tel = (r.telephone || "").replace(/\s+/g, "");
+    var lines = ["BEGIN:VCARD", "VERSION:3.0", "FN:" + name, "N:" + last + ";" + first + ";;;",
+      "TITLE:" + (r.poste || ""), "ORG:Euro Campus;" + (r.departement || "")];
+    if (tel) lines.push("TEL;TYPE=WORK,VOICE:" + tel);
+    if (r.email) lines.push("EMAIL;TYPE=WORK:" + r.email);
+    if (r.bureau) lines.push("ADR;TYPE=WORK:;;" + r.bureau + ";;;;Algeria");
+    lines.push("URL:https://eurocampuss.com", "END:VCARD");
+    return lines.join("\r\n");
+  }
+  function setText(sel, val) { var e = doc.querySelector(sel); if (e && val != null && val !== "") e.textContent = val; }
+  function setHref(sel, val) { var e = doc.querySelector(sel); if (e && val) e.setAttribute("href", val); }
+  function applyEmployee(info, r) {
+    setText(".person-name", r.nom);
+    setText(".person-role", r.poste);
+    setText(".person-dept", r.departement);
+    setText(".loc-v", r.bureau);
+    setHref("a.loc", r.mapurl);
+    if (r.telephone) setHref("a.b-call", "tel:" + r.telephone.replace(/\s+/g, ""));
+    if (r.email)     setHref("a.b-mail", "mailto:" + r.email);
+    if (r.whatsapp)  setHref("a.b-wa", "https://wa.me/" + r.whatsapp.replace(/[^\d]/g, ""));
+    if (r.linkedin)  setHref("a.b-li", r.linkedin);
+    if (r.nom)    info.name = r.nom;
+    if (r.poste)  info.role = r.poste;
+    if (r.bureau) info.office = r.bureau;
+    if (r.email)  info.email = r.email;
+    var saveEl = doc.querySelector("a.save[href^='data:text/vcard']");
+    if (saveEl) {
+      var vcf = buildVCard(r);
+      saveEl.setAttribute("href", "data:text/vcard;charset=utf-8," + encodeURIComponent(vcf));
+      info.vcard = vcf;
+    }
+    if (r.nom) doc.title = r.nom + " — Euro Campus";
+  }
+  function applyPhoto(uri) {
+    if (!uri) return;
+    var av = doc.querySelector(".avatar");
+    if (!av) return;
+    var img = av.querySelector("img");
+    if (img) { img.setAttribute("src", uri); }
+    else { av.innerHTML = '<img src="' + uri + '" alt="">'; }
+  }
+  function hydrateCard(info) {
+    if (!REVIEW_ENDPOINT || !info.isCard) return;
+    var slug = slugFromPath();
+    if (!slug) return;
+    jsonp(REVIEW_ENDPOINT + "?action=employee&slug=" + encodeURIComponent(slug), function (data) {
+      if (data && data.ok && data.employee) applyEmployee(info, data.employee);
+    });
+    // Uploaded photo (kept in the Photos tab) overrides the static avatar image.
+    jsonp(REVIEW_ENDPOINT + "?action=photo&slug=" + encodeURIComponent(slug), function (data) {
+      if (data && data.ok && data.photo) applyPhoto(data.photo);
+    });
+  }
+
   /* ---------- read the card's own data ---------- */
   function readCard() {
     var nameEl = doc.querySelector(".person-name");
@@ -190,6 +285,18 @@
     comment.setAttribute("aria-label", "Votre commentaire");
     card.appendChild(comment);
 
+    // Honeypot: hidden from people, but bots tend to fill every field. Kept
+    // off-screen (not display:none) and out of the tab order. The server drops
+    // any submission where this is non-empty.
+    var honey = el("input", "ec-hp");
+    honey.type = "text";
+    honey.tabIndex = -1;
+    honey.setAttribute("autocomplete", "off");
+    honey.setAttribute("aria-hidden", "true");
+    honey.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none";
+    card.appendChild(honey);
+    var openedAt = Date.now();   // for the "too fast to be human" check
+
     var hint = el("div", "ec-hint");
     card.appendChild(hint);
 
@@ -234,6 +341,14 @@
         hide();
       }
 
+      // Spam guards: a filled honeypot or an implausibly fast submit (< 1s)
+      // is almost certainly a bot — pretend it worked, but send nothing.
+      if (honey.value || (Date.now() - openedAt) < 1000) {
+        toast("Merci pour votre avis ✓");
+        hide();
+        return;
+      }
+
       // No backend configured → use the mail-app fallback.
       if (!REVIEW_ENDPOINT) { mailtoFallback(); return; }
 
@@ -245,6 +360,7 @@
         rating: rating,
         comment: comment.value.trim(),
         reviewer: who,
+        hp: honey.value,
         url: location.href
       };
       send.disabled = true;
@@ -267,12 +383,13 @@
     overlay.addEventListener("click", function (e) { if (e.target === overlay) hide(); });
     doc.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
 
-    return function open() { overlay.classList.add("open"); };
+    return function open() { openedAt = Date.now(); overlay.classList.add("open"); };
   }
 
   /* ---------- toolbar ---------- */
   function build() {
     var info = readCard();
+    if (info.isCard) { hydrateCard(info); trackEvent("view", info); }
     var bar = el("div", "ec-toolbar");
 
     // theme toggle
@@ -296,15 +413,19 @@
       var shareBtn = el("button", "ec-tool", ICONS.share);
       shareBtn.type = "button";
       shareBtn.setAttribute("aria-label", "Partager");
-      shareBtn.addEventListener("click", function () { doShare(info); });
+      shareBtn.addEventListener("click", function () { trackEvent("share", info); doShare(info); });
       bar.appendChild(shareBtn);
 
       var openQr = buildQrModal(info);
       var qrBtn = el("button", "ec-tool", ICONS.qr);
       qrBtn.type = "button";
       qrBtn.setAttribute("aria-label", "Afficher le QR code");
-      qrBtn.addEventListener("click", openQr);
+      qrBtn.addEventListener("click", function () { trackEvent("qr", info); openQr(); });
       bar.appendChild(qrBtn);
+
+      // count "save contact" taps on the vCard download link
+      var saveLink = doc.querySelector("a.save[href^='data:text/vcard']");
+      if (saveLink) saveLink.addEventListener("click", function () { trackEvent("save", info); });
     }
 
     // Cards have a header bar — drop the buttons in there (in normal flow,
@@ -329,7 +450,7 @@
         var openReview = buildReviewModal(info);
         var reviewBtn = el("button", "ec-review-btn", ICONS.star + "<span>Laisser un avis</span>");
         reviewBtn.type = "button";
-        reviewBtn.addEventListener("click", openReview);
+        reviewBtn.addEventListener("click", function () { trackEvent("review_open", info); openReview(); });
         var divider = page.querySelector(".divider");
         page.insertBefore(reviewBtn, divider || null);
       }

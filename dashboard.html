@@ -31,26 +31,44 @@
     .title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.45rem;color:var(--teal)}
     .sub{font-size:.86rem;color:var(--muted);margin-top:3px;margin-bottom:18px}
 
-    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:22px}
-    .sum{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:16px 12px;text-align:center;box-shadow:0 2px 10px rgba(14,92,102,.06)}
-    .sum .v{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;color:var(--teal-deep)}
-    .sum .l{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+    /* mode switch */
+    .modebar{display:flex;gap:8px;margin-bottom:16px}
+    .mode-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-family:inherit;font-weight:700;font-size:.86rem;cursor:pointer;transition:.15s}
+    .mode-btn.on{background:linear-gradient(90deg,var(--teal),var(--teal-deep));color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(30,169,186,.28)}
+
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+    .sum{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:15px 8px;text-align:center;box-shadow:0 2px 10px rgba(14,92,102,.06)}
+    .sum .v{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.4rem;color:var(--teal-deep)}
+    .sum .l{font-size:.62rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:4px}
+
+    /* trend sparkline */
+    .trend{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:18px;box-shadow:0 2px 10px rgba(14,92,102,.06)}
+    .trend-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+    .trend-top .t{font-size:.74rem;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+    .trend-top .d{font-size:.78rem;font-weight:700}
+    .trend-top .up{color:#2e9e5b}.trend-top .down{color:#d9534f}
+    .trend svg{width:100%;height:48px;display:block}
+
+    /* toolbar (sort + export) */
+    .toolbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:14px}
+    .chip{padding:8px 13px;border-radius:100px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer;transition:.15s}
+    .chip.on{background:var(--teal-pale);color:var(--teal-deep);border-color:rgba(30,169,186,.4)}
+    .chip.act{margin-left:auto}
+    .chip.act svg{width:13px;height:13px;vertical-align:-2px;margin-right:4px;fill:currentColor}
 
     .row{display:flex;align-items:center;gap:13px;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:11px;box-shadow:0 2px 10px rgba(14,92,102,.06)}
     .rank{font-family:'Poppins',sans-serif;font-weight:700;font-size:.95rem;color:var(--muted);width:24px;text-align:center;flex-shrink:0}
     .who{flex:1;min-width:0}
     .who .nm{font-weight:700;font-size:.96rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .who .rl{font-size:.74rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .bar{height:7px;border-radius:6px;background:var(--teal-pale);margin-top:7px;overflow:hidden}
-    .bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-light));border-radius:6px}
+    .who .acts{font-size:.72rem;color:var(--teal-deep);font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .score{text-align:right;flex-shrink:0}
-    .score .avg{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.15rem;color:var(--teal-deep);line-height:1}
-    .score .avg small{font-size:.62rem;color:var(--muted);font-weight:600}
-    .score .cnt{font-size:.7rem;color:var(--muted);margin-top:3px}
-    .stars{font-size:.8rem;letter-spacing:1px;color:#f5a623;margin-top:2px}
-    .row{cursor:pointer;transition:box-shadow .18s,transform .18s}
-    .row:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(14,92,102,.14)}
+    .score .avg{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.3rem;color:var(--teal-deep);line-height:1}
+    .score .cnt{font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+    .row.clk{cursor:pointer;transition:box-shadow .18s,transform .18s}
+    .row.clk:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(14,92,102,.14)}
     .chev{width:18px;height:18px;flex-shrink:0;fill:var(--muted)}
+    .stars{font-size:.8rem;letter-spacing:1px;color:#f5a623}
     /* drill-down review list */
     .rev-list{text-align:left;margin-top:8px;max-height:52vh;overflow:auto}
     .rev{border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin-bottom:9px;background:var(--off)}
@@ -61,9 +79,45 @@
     .rev-by{font-size:.74rem;color:var(--muted);margin-top:6px;font-weight:700}
     .rev-empty{font-size:.85rem;color:var(--muted);padding:10px 0;text-align:center}
 
+    /* editor */
+    .ed-row{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:13px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(14,92,102,.06)}
+    .ed-av{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem}
+    .ed-who{flex:1;min-width:0}
+    .ed-who .nm{font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ed-who .rl{font-size:.74rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ed-av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+    .ed-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+    .ed-btn{flex-shrink:0;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--teal-pale);color:var(--teal-deep);font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer}
+    .ed-btn:hover{background:#d7eff2}
+    .ed-btn.off{background:transparent;color:#d9534f;border-color:rgba(217,83,79,.3)}
+    .ed-btn.re{background:#eafaf0;color:#2e9e5b;border-color:rgba(46,158,91,.3)}
+    .ed-row.off{opacity:.55}
+    .ed-row.off .nm::after{content:" · retirée";color:#d9534f;font-weight:700;font-size:.74rem}
+    /* photo uploader inside the edit modal */
+    .ef-photo{display:flex;align-items:center;gap:14px;margin:8px 0 2px;text-align:left}
+    .ef-photo .pv{width:64px;height:64px;border-radius:16px;flex-shrink:0;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
+    .ef-photo .pv img{width:100%;height:100%;object-fit:cover;display:block}
+    .ph-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--teal-pale);color:var(--teal-deep);font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer}
+    .ph-btn.rm{background:transparent;color:#d9534f;border-color:rgba(217,83,79,.3)}
+    .ef-photo .phint{font-size:.66rem;color:var(--muted);margin-top:5px;line-height:1.35}
+    .adminbar{background:#fff8e6;border:1px solid #f0d98a;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.84rem;color:#7a5d00}
+    .adminbar.ok{background:var(--teal-pale);border-color:rgba(30,169,186,.4);color:var(--teal-deep)}
+    .adminbar .arow{display:flex;gap:8px;margin-top:10px}
+    .adminbar input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:.9rem}
+    .adminbar button{padding:10px 16px;border:none;border-radius:10px;background:var(--teal);color:#fff;font-family:inherit;font-weight:700;cursor:pointer}
+    .ef-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;text-align:left;margin-top:6px}
+    .ef-grid .full{grid-column:1/-1}
+    .ef-lab{font-size:.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:block}
+
     .state{text-align:center;color:var(--muted);font-size:.9rem;padding:46px 10px;line-height:1.5}
     .state b{color:var(--ink)}
     footer{text-align:center;margin-top:34px;font-size:.78rem;color:var(--muted)}
+
+    @media print{
+      body::before{display:none}
+      .back,.modebar,.toolbar,.brand-bar .nfc-badge,.ec-toolbar,.chev,#editor-view{display:none!important}
+      .row,.sum,.trend{box-shadow:none}
+    }
   </style>
 </head>
 <body>
@@ -87,11 +141,26 @@
     Retour au répertoire
   </a>
 
-  <div class="title">Statistiques des avis</div>
-  <div class="sub">Note moyenne et nombre d'avis par employé, en direct.</div>
+  <div class="title">Tableau de bord</div>
+  <div class="sub">Utilisation des cartes, avis, et gestion du contenu — en direct.</div>
 
-  <div id="content">
-    <div class="state" id="state">Chargement des statistiques…</div>
+  <div class="modebar">
+    <button class="mode-btn on" id="m-stats" type="button">📊 Statistiques</button>
+    <button class="mode-btn" id="m-edit" type="button">✏️ Gérer les cartes</button>
+  </div>
+
+  <!-- ───────── STATS VIEW ───────── -->
+  <div id="stats-view">
+    <div id="content">
+      <div class="state" id="state">Chargement des statistiques…</div>
+    </div>
+  </div>
+
+  <!-- ───────── EDITOR VIEW ───────── -->
+  <div id="editor-view" style="display:none">
+    <div id="editor">
+      <div class="state">Chargement…</div>
+    </div>
   </div>
 
   <footer>Euro Campus · Tableau de bord interne</footer>
@@ -99,124 +168,442 @@
 
 <script src="assets/card.js"></script>
 <script>
-  // Live read endpoint = the same Apps Script Web App URL (GET, via JSONP).
-  var STATS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
+  // Same Apps Script Web App URL (GET via JSONP for reads + authenticated save).
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
+  // The admin password hash is exchanged once (login) for a short-lived session
+  // id; only the session id is stored + sent on writes, never the password.
+  var SESSION_KEY = "ec-admin-session";
+  function adminSession(){ try{ return sessionStorage.getItem(SESSION_KEY)||""; }catch(e){ return ""; } }
+  function clearSession(){ try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){} }
 
-  function stars(avg){
-    var n = Math.round(avg), s = "";
-    for (var i=0;i<5;i++) s += (i<n ? "★" : "☆");
-    return s;
-  }
-  function setState(msg){
-    document.getElementById("content").innerHTML = '<div class="state">'+msg+'</div>';
-  }
-
-  var currentStats = [];
-
-  // JSONP callback (called by the <script> we inject below)
-  window.ecStats = function (data) {
-    if (!data || !data.ok) { setState("Impossible de charger les statistiques."); return; }
-    var stats = data.stats || [];
-    currentStats = stats;
-    if (!stats.length) {
-      setState("Aucun avis pour le moment.<br><b>Les statistiques apparaîtront dès le premier avis.</b>");
-      return;
-    }
-    var total = data.total || stats.reduce(function(s,x){return s+(x.count||0);},0);
-    var rated = stats.length;
-    var overall = total ? (stats.reduce(function(s,x){return s+(x.avg*x.count);},0)/total) : 0;
-
-    var html = '<div class="summary">' +
-      '<div class="sum"><div class="v">'+total+'</div><div class="l">Avis</div></div>' +
-      '<div class="sum"><div class="v">'+overall.toFixed(1)+'</div><div class="l">Moyenne</div></div>' +
-      '<div class="sum"><div class="v">'+rated+'</div><div class="l">Évalués</div></div>' +
-      '</div>';
-
-    stats.forEach(function (s, i) {
-      var pct = Math.max(0, Math.min(100, (s.avg/5)*100));
-      html += '<div class="row" data-i="'+i+'" role="button" tabindex="0">' +
-        '<div class="rank">'+(i+1)+'</div>' +
-        '<div class="who">' +
-          '<div class="nm">'+escapeHtml(s.employee)+'</div>' +
-          '<div class="rl">'+escapeHtml([s.role, s.office].filter(Boolean).join(" · "))+'</div>' +
-          '<div class="bar"><span style="width:'+pct+'%"></span></div>' +
-        '</div>' +
-        '<div class="score">' +
-          '<div class="avg">'+s.avg.toFixed(1)+'<small>/5</small></div>' +
-          '<div class="stars">'+stars(s.avg)+'</div>' +
-          '<div class="cnt">'+s.count+' avis</div>' +
-        '</div>' +
-        '<svg class="chev" viewBox="0 0 24 24"><path d="M9.29 6.71a1 1 0 000 1.41L13.17 12l-3.88 3.88a1 1 0 101.41 1.41l4.59-4.59a1 1 0 000-1.41L10.7 6.7a1 1 0 00-1.41.01z"/></svg>' +
-      '</div>';
-    });
-    var box = document.getElementById("content");
-    box.innerHTML = html;
-    box.querySelectorAll(".row").forEach(function (row) {
-      var open = function () { openDetail(parseInt(row.getAttribute("data-i"), 10)); };
-      row.addEventListener("click", open);
-      row.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } });
-    });
-  };
-
-  // ── drill-down popup: one person's individual reviews ──
-  function ensureModal() {
-    var m = document.getElementById("ec-detail");
-    if (m) return m;
-    m = document.createElement("div");
-    m.className = "ec-modal";
-    m.id = "ec-detail";
-    m.innerHTML = '<div class="ec-modal-card"></div>';
-    document.body.appendChild(m);
-    m.addEventListener("click", function (e) { if (e.target === m) closeDetail(); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
-    return m;
-  }
-  function closeDetail() {
-    var m = document.getElementById("ec-detail");
-    if (m) m.classList.remove("open");
-  }
-  function openDetail(i) {
-    var s = currentStats[i];
-    if (!s) return;
-    var reviews = (s.reviews || []).slice().reverse(); // newest first
-    var list = reviews.length ? reviews.map(function (r) {
-      return '<div class="rev">' +
-        '<div class="rev-top"><span class="rev-stars">' + stars(r.rating) + '</span>' +
-        (r.date ? '<span class="rev-date">' + escapeHtml(r.date) + '</span>' : '') + '</div>' +
-        '<div class="rev-cmt">' + (r.comment ? escapeHtml(r.comment) : '<i>(sans commentaire)</i>') + '</div>' +
-        (r.reviewer ? '<div class="rev-by">— ' + escapeHtml(r.reviewer) + '</div>' : '') +
-        '</div>';
-    }).join("") : '<div class="rev-empty">Aucun commentaire.</div>';
-
-    var m = ensureModal();
-    m.querySelector(".ec-modal-card").innerHTML =
-      '<div class="ec-modal-title">' + escapeHtml(s.employee) + '</div>' +
-      '<div class="ec-modal-sub">' + escapeHtml([s.role, s.office].filter(Boolean).join(" · ")) +
-        ' · ★ ' + s.avg.toFixed(1) + '/5 · ' + s.count + ' avis</div>' +
-      '<div class="rev-list">' + list + '</div>' +
-      '<button class="ec-close" type="button">Fermer</button>';
-    m.querySelector(".ec-close").addEventListener("click", closeDetail);
-    m.classList.add("open");
-  }
-
+  /* ---------- helpers ---------- */
+  function $(id){ return document.getElementById(id); }
   function escapeHtml(str){
     return String(str==null?"":str).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
     });
   }
+  function stars(avg){ var n=Math.round(avg),s=""; for(var i=0;i<5;i++)s+=(i<n?"★":"☆"); return s; }
+  function setState(msg){ $("content").innerHTML='<div class="state">'+msg+'</div>'; }
+  function timeAgo(ts){
+    var d=new Date(ts); if(isNaN(d.getTime()))return"";
+    var s=Math.floor((Date.now()-d.getTime())/1000);
+    if(s<60)return"à l'instant";
+    var m=Math.floor(s/60); if(m<60)return"il y a "+m+" min";
+    var h=Math.floor(m/60); if(h<24)return"il y a "+h+" h";
+    var j=Math.floor(h/24); if(j<30)return"il y a "+j+" j";
+    return"il y a "+Math.floor(j/30)+" mois";
+  }
+  function jsonp(url, cb){
+    var name="_ecdash_"+Math.random().toString(36).slice(2), s=document.createElement("script"), done=false;
+    function finish(d){if(done)return;done=true;try{cb(d);}catch(e){}try{delete window[name];}catch(e){window[name]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);}
+    window[name]=function(d){finish(d);};
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+name+"&_="+Date.now();
+    s.onerror=function(){finish(null);};
+    document.body.appendChild(s);
+    setTimeout(function(){finish(null);}, 12000);
+  }
+  function sha256Hex(str){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+    });
+  }
+
+  /* ---------- photo upload: shrink client-side to a small square JPEG ---------- */
+  function resizeImage(file, maxSide, cb){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.naturalWidth, h=img.naturalHeight;
+        if(!w||!h){ cb(null); return; }
+        var src=Math.min(w,h), sx=(w-src)/2, sy=(h-src)/2;   // centre square crop
+        var side=Math.min(maxSide, src);
+        var canvas=document.createElement("canvas");
+        canvas.width=side; canvas.height=side;
+        var ctx=canvas.getContext("2d");
+        ctx.drawImage(img, sx, sy, src, src, 0, 0, side, side);
+        var q=0.72, uri=canvas.toDataURL("image/jpeg", q);
+        while(uri.length>45000 && q>0.4){ q-=0.1; uri=canvas.toDataURL("image/jpeg", q); }
+        cb(uri);
+      };
+      img.onerror=function(){ cb(null); };
+      img.src=ev.target.result;
+    };
+    reader.onerror=function(){ cb(null); };
+    reader.readAsDataURL(file);
+  }
+  // POST the photo (data-URI in the body, so no URL-length limit), then confirm
+  // by reading it back (Apps Script POST responses aren't readable cross-origin).
+  function savePhoto(slug, datauri, session, cb){
+    fetch(ENDPOINT, {
+      method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"savephoto", slug:slug, datauri:datauri, session:session})
+    }).then(function(){ confirmPhoto(slug, datauri, cb, 0); })
+      .catch(function(){ cb(false); });
+  }
+  function confirmPhoto(slug, datauri, cb, tries){
+    jsonp(ENDPOINT+"?action=photo&slug="+encodeURIComponent(slug), function(data){
+      var saved = data && data.ok && (data.photo||"") === datauri;
+      if(saved){ cb(true); return; }
+      if(tries>=3){ cb(false); return; }
+      setTimeout(function(){ confirmPhoto(slug, datauri, cb, tries+1); }, 900);
+    });
+  }
+  // Retire / reactivate a card (hides it from the directory; link still works).
+  function setActive(slug, active, cb){
+    var session=adminSession(); if(!session){ cb(false,"auth"); return; }
+    jsonp(ENDPOINT+"?action=setactive&session="+encodeURIComponent(session)+
+          "&slug="+encodeURIComponent(slug)+"&active="+(active?"true":"false"), function(data){
+      cb(!!(data&&data.ok), data&&data.error);
+    });
+  }
+
+  /* ===================== STATS ===================== */
+  var DASH = { rows:[], totals:{}, trend:{labels:[],views:[]} };
+  var sortKey = "views";
+
+  window.ecDash = function(data){
+    if(!data || !data.ok){ setState("Impossible de charger les statistiques."); return; }
+    DASH.rows   = data.rows   || [];
+    DASH.totals = data.totals || {};
+    DASH.trend  = data.trend  || {labels:[],views:[]};
+    renderStats();
+  };
+
+  function sparkline(values){
+    values = values || [];
+    if(!values.length) return "";
+    var w=600, h=48, max=Math.max(1, Math.max.apply(null, values)), step=values.length>1?w/(values.length-1):w;
+    var pts=values.map(function(v,i){ return (i*step).toFixed(1)+","+(h-(v/max)*(h-6)-3).toFixed(1); });
+    var area="0,"+h+" "+pts.join(" ")+" "+w+","+h;
+    return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+      '<polygon points="'+area+'" fill="rgba(30,169,186,.12)"/>'+
+      '<polyline points="'+pts.join(" ")+'" fill="none" stroke="#1EA9BA" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '</svg>';
+  }
+
+  function renderStats(){
+    var t=DASH.totals, rows=DASH.rows.slice();
+
+    // sort
+    rows.sort(function(a,b){
+      if(sortKey==="avg")     return (b.avg||0)-(a.avg||0);
+      if(sortKey==="reviews") return (b.reviewCount||0)-(a.reviewCount||0);
+      return (b.views||0)-(a.views||0); // default: views
+    });
+
+    // trend deltas (last 7 vs previous 7)
+    var v=DASH.trend.views||[], n=v.length;
+    var last7=v.slice(Math.max(0,n-7)).reduce(function(s,x){return s+x;},0);
+    var prev7=v.slice(Math.max(0,n-14),Math.max(0,n-7)).reduce(function(s,x){return s+x;},0);
+    var delta = last7-prev7, dCls = delta>0?"up":(delta<0?"down":""), dTxt=(delta>0?"▲ +":delta<0?"▼ ":"= ")+Math.abs(delta);
+
+    var html="";
+    // summary
+    html+='<div class="summary">'+
+      '<div class="sum"><div class="v">'+(t.views||0)+'</div><div class="l">Vues</div></div>'+
+      '<div class="sum"><div class="v">'+(t.reviews||0)+'</div><div class="l">Avis</div></div>'+
+      '<div class="sum"><div class="v">'+(t.avgOverall!=null?t.avgOverall.toFixed(1):"–")+'</div><div class="l">Moyenne</div></div>'+
+      '<div class="sum"><div class="v">'+(t.rated||0)+'</div><div class="l">Évalués</div></div>'+
+    '</div>';
+    // trend
+    if((DASH.trend.views||[]).length){
+      html+='<div class="trend"><div class="trend-top"><span class="t">Vues · 30 jours</span>'+
+        '<span class="d '+dCls+'">'+dTxt+' vs 7 j précédents</span></div>'+sparkline(DASH.trend.views)+'</div>';
+    }
+    // toolbar
+    html+='<div class="toolbar">'+
+      '<button class="chip'+(sortKey==="views"?" on":"")+'" data-sort="views">Plus vus</button>'+
+      '<button class="chip'+(sortKey==="avg"?" on":"")+'" data-sort="avg">Mieux notés</button>'+
+      '<button class="chip'+(sortKey==="reviews"?" on":"")+'" data-sort="reviews">Plus d\'avis</button>'+
+      '<button class="chip act" id="csv"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>CSV</button>'+
+      '<button class="chip" id="print">Imprimer</button>'+
+    '</div>';
+
+    if(!rows.length){
+      html+='<div class="state">Aucune donnée pour le moment.<br><b>Les statistiques apparaîtront dès la première utilisation.</b></div>';
+    } else {
+      rows.forEach(function(r,i){
+        var a=r.actions||{};
+        var clickable = (r.reviewCount||0)>0;
+        html+='<div class="row'+(clickable?" clk":"")+'" data-slug="'+escapeHtml(r.slug)+'"'+(clickable?' role="button" tabindex="0"':'')+'>'+
+          '<div class="rank">'+(i+1)+'</div>'+
+          '<div class="who">'+
+            '<div class="nm">'+escapeHtml(r.employee)+'</div>'+
+            '<div class="rl">'+escapeHtml([r.role,r.office].filter(Boolean).join(" · "))+'</div>'+
+            '<div class="acts">'+
+              (r.avg!=null?'<span class="stars">'+stars(r.avg)+'</span> '+r.avg.toFixed(1)+' ('+(r.reviewCount||0)+')':'★ —')+
+              ' &nbsp;·&nbsp; ↗ '+(a.share||0)+' &nbsp; ▦ '+(a.qr||0)+' &nbsp; 👤 '+(a.save||0)+
+              (r.last?' &nbsp;·&nbsp; vu '+timeAgo(r.last):'')+
+            '</div>'+
+          '</div>'+
+          '<div class="score"><div class="avg">'+(r.views||0)+'</div><div class="cnt">vues</div></div>'+
+          (clickable?'<svg class="chev" viewBox="0 0 24 24"><path d="M9.29 6.71a1 1 0 000 1.41L13.17 12l-3.88 3.88a1 1 0 101.41 1.41l4.59-4.59a1 1 0 000-1.41L10.7 6.7a1 1 0 00-1.41.01z"/></svg>':'')+
+        '</div>';
+      });
+    }
+
+    var box=$("content"); box.innerHTML=html;
+    // sort chips
+    box.querySelectorAll(".chip[data-sort]").forEach(function(c){
+      c.addEventListener("click", function(){ sortKey=c.getAttribute("data-sort"); renderStats(); });
+    });
+    $("csv").addEventListener("click", exportCsv);
+    $("print").addEventListener("click", function(){ window.print(); });
+    // drill-down
+    box.querySelectorAll(".row.clk").forEach(function(row){
+      var open=function(){ openDetail(row.getAttribute("data-slug")); };
+      row.addEventListener("click", open);
+      row.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); open(); } });
+    });
+  }
+
+  function exportCsv(){
+    var head=["Slug","Employé","Poste","Bureau","Vues","Partages","QR","Contacts","Avis","Note moyenne","Dernière vue"];
+    var lines=[head.join(",")];
+    DASH.rows.forEach(function(r){
+      var a=r.actions||{};
+      var cells=[r.slug,r.employee,r.role,r.office,r.views||0,a.share||0,a.qr||0,a.save||0,r.reviewCount||0,
+        (r.avg!=null?r.avg.toFixed(1):""),(r.last?new Date(r.last).toISOString():"")];
+      lines.push(cells.map(function(c){ c=String(c==null?"":c); return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(","));
+    });
+    var blob=new Blob(["﻿"+lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+    var url=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=url; a.download="euro-campus-stats-"+new Date().toISOString().slice(0,10)+".csv";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  }
+
+  /* ---------- drill-down popup (reviews) ---------- */
+  function ensureModal(id){
+    var m=$(id); if(m) return m;
+    m=document.createElement("div"); m.className="ec-modal"; m.id=id;
+    m.innerHTML='<div class="ec-modal-card"></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function(e){ if(e.target===m) m.classList.remove("open"); });
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape") m.classList.remove("open"); });
+    return m;
+  }
+  function openDetail(slug){
+    var r=null; DASH.rows.forEach(function(x){ if(x.slug===slug) r=x; });
+    if(!r) return;
+    var reviews=(r.reviews||[]).slice().reverse();
+    var list=reviews.length?reviews.map(function(rv){
+      return '<div class="rev"><div class="rev-top"><span class="rev-stars">'+stars(rv.rating)+'</span>'+
+        (rv.date?'<span class="rev-date">'+escapeHtml(rv.date)+'</span>':'')+'</div>'+
+        '<div class="rev-cmt">'+(rv.comment?escapeHtml(rv.comment):'<i>(sans commentaire)</i>')+'</div>'+
+        (rv.reviewer?'<div class="rev-by">— '+escapeHtml(rv.reviewer)+'</div>':'')+'</div>';
+    }).join(""):'<div class="rev-empty">Aucun commentaire.</div>';
+    var m=ensureModal("ec-detail");
+    m.querySelector(".ec-modal-card").innerHTML=
+      '<div class="ec-modal-title">'+escapeHtml(r.employee)+'</div>'+
+      '<div class="ec-modal-sub">'+escapeHtml([r.role,r.office].filter(Boolean).join(" · "))+
+        ' · '+(r.views||0)+' vues · ★ '+(r.avg!=null?r.avg.toFixed(1):"–")+'/5 · '+(r.reviewCount||0)+' avis</div>'+
+      '<div class="rev-list">'+list+'</div>'+
+      '<button class="ec-close" type="button">Fermer</button>';
+    m.querySelector(".ec-close").addEventListener("click", function(){ m.classList.remove("open"); });
+    m.classList.add("open");
+  }
+
+  /* ===================== EDITOR ===================== */
+  var EMPLOYEES = [];
+  var PHOTOS = {};
+  var FIELDS = [
+    {k:"nom",        l:"Nom",            full:true},
+    {k:"poste",      l:"Poste"},
+    {k:"departement",l:"Département"},
+    {k:"bureau",     l:"Bureau / Localisation", full:true},
+    {k:"mapurl",     l:"Lien Google Maps", full:true},
+    {k:"telephone",  l:"Téléphone"},
+    {k:"whatsapp",   l:"WhatsApp"},
+    {k:"email",      l:"Email", full:true},
+    {k:"linkedin",   l:"LinkedIn", full:true},
+    {k:"initiales",  l:"Initiales (sans photo)"}
+  ];
+
+  function renderEditor(){
+    var ed=$("editor");
+    var authed=!!adminSession();
+    var bar='<div class="adminbar'+(authed?" ok":"")+'">'+
+      (authed
+        ? '🔓 Mode édition actif. Les modifications sont enregistrées dans la feuille et apparaissent sur les cartes.'+
+          ' <a href="#" id="logout" style="font-weight:700;color:inherit">Quitter</a>'
+        : '🔒 Entrez le mot de passe administrateur pour modifier les cartes.'+
+          '<div class="arow"><input id="adm-pass" type="password" placeholder="Mot de passe admin" autocomplete="off"/>'+
+          '<button id="adm-go" type="button">Déverrouiller</button></div>')+
+      '</div>';
+
+    var listHtml="";
+    if(!EMPLOYEES.length){
+      listHtml='<div class="state">Aucune fiche dans la feuille « Employes ».<br><b>Exécutez seedEmployees() dans Apps Script pour les créer.</b></div>';
+    } else {
+      EMPLOYEES.forEach(function(e,i){
+        var retired=(e.actif===false), ph=PHOTOS[e.slug];
+        var avInner = ph ? '<img src="'+ph+'" alt="">'
+                         : escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
+        listHtml+='<div class="ed-row'+(retired?" off":"")+'">'+
+          '<div class="ed-av">'+avInner+'</div>'+
+          '<div class="ed-who"><div class="nm">'+escapeHtml(e.nom||e.slug)+'</div>'+
+            '<div class="rl">'+escapeHtml([e.poste,e.bureau].filter(Boolean).join(" · "))+'</div></div>'+
+          (authed?'<div class="ed-actions">'+
+            '<button class="ed-btn" data-i="'+i+'">Modifier</button>'+
+            (retired
+              ? '<button class="ed-btn re" data-act="'+i+'">Réactiver</button>'
+              : '<button class="ed-btn off" data-act="'+i+'">Retirer</button>')+
+           '</div>':'')+
+        '</div>';
+      });
+    }
+    ed.innerHTML=bar+listHtml;
+
+    if(authed){
+      var lo=$("logout"); if(lo) lo.addEventListener("click", function(ev){ ev.preventDefault(); clearSession(); renderEditor(); });
+      ed.querySelectorAll(".ed-btn[data-i]").forEach(function(b){ b.addEventListener("click", function(){ openEdit(parseInt(b.getAttribute("data-i"),10)); }); });
+      ed.querySelectorAll(".ed-btn[data-act]").forEach(function(b){ b.addEventListener("click", function(){ toggleActive(parseInt(b.getAttribute("data-act"),10), b); }); });
+    } else {
+      var go=$("adm-go"), inp=$("adm-pass");
+      function unlock(){
+        var v=(inp.value||"").trim(); if(!v) return;
+        go.disabled=true; go.textContent="…";
+        sha256Hex(v).then(function(h){
+          jsonp(ENDPOINT+"?action=login&token="+encodeURIComponent(h), function(data){
+            if(data && data.ok && data.session){
+              try{sessionStorage.setItem(SESSION_KEY,data.session);}catch(e){}
+              renderEditor();
+            } else {
+              go.disabled=false; go.textContent="Déverrouiller";
+              inp.value=""; inp.placeholder="Mot de passe incorrect — réessayez";
+            }
+          });
+        });
+      }
+      if(go) go.addEventListener("click", unlock);
+      if(inp) inp.addEventListener("keydown", function(e){ if(e.key==="Enter") unlock(); });
+    }
+  }
+
+  function toggleActive(i, btn){
+    var e=EMPLOYEES[i]; if(!e) return;
+    var makeActive=(e.actif===false);   // currently retired → reactivate
+    btn.disabled=true; btn.textContent="…";
+    setActive(e.slug, makeActive, function(ok, err){
+      if(ok){ e.actif=makeActive; renderEditor(); }
+      else if(err==="auth"){ clearSession(); renderEditor(); }
+      else { renderEditor(); }
+    });
+  }
+
+  function openEdit(i){
+    var e=EMPLOYEES[i]; if(!e) return;
+    var m=ensureModal("ec-edit");
+    var grid=FIELDS.map(function(f){
+      return '<div class="'+(f.full?"full":"")+'"><label class="ef-lab">'+escapeHtml(f.l)+'</label>'+
+        '<input class="ec-field" data-k="'+f.k+'" value="'+escapeHtml(e[f.k]||"")+'"/></div>';
+    }).join("");
+    var curPhoto=PHOTOS[e.slug]||"";
+    var fallbackInit=escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
+    m.querySelector(".ec-modal-card").innerHTML=
+      '<div class="ec-modal-title">Modifier la fiche</div>'+
+      '<div class="ec-modal-sub">'+escapeHtml(e.slug)+'</div>'+
+      '<div class="ef-photo">'+
+        '<div class="pv" id="ph-pv">'+(curPhoto?'<img src="'+curPhoto+'" alt="">':fallbackInit)+'</div>'+
+        '<div class="pbtns">'+
+          '<button class="ph-btn" id="ph-pick" type="button">Téléverser une photo</button>'+
+          '<button class="ph-btn rm" id="ph-rm" type="button"'+(curPhoto?'':' style="display:none"')+'>Retirer la photo</button>'+
+          '<div class="phint">Recadrée en petit carré. Sinon, les initiales sont utilisées.</div>'+
+        '</div>'+
+        '<input type="file" id="ph-file" accept="image/*" style="display:none"/>'+
+      '</div>'+
+      '<div class="ef-grid">'+grid+'</div>'+
+      '<div class="ec-hint" id="ed-hint" style="min-height:18px"></div>'+
+      '<button class="ec-close" id="ed-save" type="button">Enregistrer</button>'+
+      '<button class="ec-cancel" id="ed-cancel" type="button">Annuler</button>';
+    m.classList.add("open");
+    var hint=$("ed-hint"), save=$("ed-save");
+
+    // photo controls — pendingPhoto: undefined = unchanged, "" = remove, "data:…" = new
+    var pendingPhoto;
+    var pv=$("ph-pv"), pick=$("ph-pick"), rm=$("ph-rm"), file=$("ph-file");
+    pick.addEventListener("click", function(){ file.click(); });
+    file.addEventListener("change", function(){
+      var f=file.files && file.files[0]; if(!f) return;
+      hint.textContent=""; hint.classList.remove("show");
+      resizeImage(f, 256, function(uri){
+        if(!uri){ hint.textContent="Image illisible. Essayez un autre fichier."; hint.classList.add("show"); return; }
+        pendingPhoto=uri; pv.innerHTML='<img src="'+uri+'" alt="">'; rm.style.display="";
+      });
+    });
+    rm.addEventListener("click", function(){
+      pendingPhoto=""; pv.innerHTML=fallbackInit; rm.style.display="none"; file.value="";
+    });
+
+    $("ed-cancel").addEventListener("click", function(){ m.classList.remove("open"); });
+    save.addEventListener("click", function(){
+      var session=adminSession(); if(!session){ m.classList.remove("open"); renderEditor(); return; }
+      var url=ENDPOINT+"?action=save&session="+encodeURIComponent(session)+"&slug="+encodeURIComponent(e.slug);
+      m.querySelectorAll(".ec-field[data-k]").forEach(function(inp){
+        url+="&"+inp.getAttribute("data-k")+"="+encodeURIComponent(inp.value.trim());
+      });
+      save.disabled=true; save.textContent="Enregistrement…"; hint.textContent=""; hint.classList.remove("show");
+      jsonp(url, function(data){
+        if(data && data.ok){
+          m.querySelectorAll(".ec-field[data-k]").forEach(function(inp){ e[inp.getAttribute("data-k")]=inp.value.trim(); });
+          if(pendingPhoto!==undefined){
+            save.textContent="Photo…";
+            savePhoto(e.slug, pendingPhoto, session, function(okp){
+              save.disabled=false; save.textContent="Enregistrer";
+              if(okp){
+                if(pendingPhoto) PHOTOS[e.slug]=pendingPhoto; else delete PHOTOS[e.slug];
+                m.classList.remove("open"); renderEditor();
+              } else {
+                hint.textContent="Fiche enregistrée, mais l'envoi de la photo a échoué. Réessayez."; hint.classList.add("show");
+              }
+            });
+          } else {
+            save.disabled=false; save.textContent="Enregistrer";
+            m.classList.remove("open"); renderEditor();
+          }
+        } else if(data && data.error==="auth"){
+          clearSession();
+          hint.textContent="Session expirée. Reconnectez-vous."; hint.classList.add("show");
+          setTimeout(function(){ m.classList.remove("open"); renderEditor(); }, 1400);
+        } else {
+          save.disabled=false; save.textContent="Enregistrer";
+          hint.textContent="Échec de l'enregistrement. Réessayez."; hint.classList.add("show");
+        }
+      });
+    });
+  }
+
+  function loadEmployees(){
+    jsonp(ENDPOINT+"?action=employees", function(data){
+      EMPLOYEES = (data && data.ok && data.employees) ? data.employees : [];
+      renderEditor();
+    });
+    jsonp(ENDPOINT+"?action=photos", function(data){
+      PHOTOS = (data && data.ok && data.photos) ? data.photos : {};
+      if(EMPLOYEES.length) renderEditor();
+    });
+  }
+
+  /* ===================== MODE SWITCH + BOOT ===================== */
+  var employeesLoaded=false;
+  $("m-stats").addEventListener("click", function(){
+    $("m-stats").classList.add("on"); $("m-edit").classList.remove("on");
+    $("stats-view").style.display=""; $("editor-view").style.display="none";
+  });
+  $("m-edit").addEventListener("click", function(){
+    $("m-edit").classList.add("on"); $("m-stats").classList.remove("on");
+    $("editor-view").style.display=""; $("stats-view").style.display="none";
+    if(!employeesLoaded){ employeesLoaded=true; loadEmployees(); }
+  });
 
   (function load(){
-    if (!STATS_ENDPOINT || STATS_ENDPOINT.indexOf("http") !== 0) {
-      setState("Endpoint non configuré."); return;
-    }
-    var s = document.createElement("script");
-    s.src = STATS_ENDPOINT + "?action=stats&callback=ecStats&_=" + Date.now();
-    s.onerror = function(){ setState("Impossible de joindre le serveur des avis."); };
-    document.body.appendChild(s);
-    // safety timeout if the callback never fires
-    setTimeout(function(){
-      if (document.getElementById("state")) setState("Le chargement prend trop de temps. Réessayez.");
-    }, 12000);
+    if(!ENDPOINT || ENDPOINT.indexOf("http")!==0){ setState("Endpoint non configuré."); return; }
+    jsonp(ENDPOINT+"?action=dashboard", function(data){
+      if(data) window.ecDash(data);
+      else if($("state")) setState("Impossible de joindre le serveur. Réessayez.");
+    });
   })();
 </script>
 </body>

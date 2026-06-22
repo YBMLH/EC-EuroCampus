@@ -28,6 +28,9 @@
     .cn{font-weight:700;font-size:.96rem}
     .cr{font-size:.78rem;color:var(--muted)}
     .city{font-size:.7rem;font-weight:700;color:var(--teal-deep);background:rgba(30,169,186,.08);border-radius:7px;padding:3px 9px;display:inline-block;margin-top:3px;width:fit-content}
+    .uses{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.69rem;font-weight:700;color:var(--teal-deep);margin-top:6px;padding-top:8px;border-top:1px solid var(--border)}
+    .uses .u-rate,.uses .u-last{color:var(--muted);font-weight:600}
+    .uses-sub{font-size:.64rem;font-weight:600;color:var(--muted);letter-spacing:.02em;margin-top:3px}
     footer{text-align:center;margin-top:44px;font-size:.8rem;color:var(--muted)}
     .note{background:#fff8e6;border:1px solid #f0d98a;border-radius:12px;padding:14px 16px;font-size:.82rem;color:#7a5d00;margin-bottom:24px;line-height:1.5}
     .stats-link{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;margin-bottom:22px;border-radius:14px;text-decoration:none;background:linear-gradient(90deg,var(--teal),var(--teal-deep));color:#fff;font-weight:700;font-size:.95rem;box-shadow:0 6px 20px rgba(30,169,186,.3);transition:transform .18s,box-shadow .18s}
@@ -92,15 +95,108 @@
     {slug:"employe-14",name:"Prénom Nom",role:"Responsable Boumerdès",city:"Boumerdès",av:"PN"},
     {slug:"employe-15",name:"Prénom Nom",role:"Chargée Communication",city:"Tizi Ouzou",av:"PN"}
   ];
+  // Same Apps Script Web App URL used for reviews/analytics (GET via JSONP).
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
   const g = document.getElementById("grid");
-  people.forEach(p=>{
-    const a=document.createElement("a");
-    a.href=p.slug+".html"; a.className="card";
-    a.innerHTML=`<div class="av">${p.av}</div>
-      <div class="cn">${p.name}</div>
-      <div class="cr">${p.role}</div>
-      <span class="city">📍 ${p.city}</span>`;
-    g.appendChild(a);
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+  function initialsFrom(name){return (name||"").trim().split(/\s+/).map(w=>w[0]||"").slice(0,2).join("").toUpperCase();}
+  // Map a Sheet "Employes" record onto the directory card shape.
+  function fromEmployee(r){
+    return {slug:r.slug, name:r.nom||"", role:r.poste||"", city:(r.bureau||"").split("—")[0].trim(),
+            av:r.initiales||initialsFrom(r.nom)};
+  }
+
+  // ── JSONP loader (Apps Script sends no CORS headers) ──
+  function jsonp(url, cb){
+    var name="_ecdir_"+Math.random().toString(36).slice(2), s=document.createElement("script"), done=false;
+    function finish(d){if(done)return;done=true;try{cb(d);}catch(e){}try{delete window[name];}catch(e){window[name]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);}
+    window[name]=function(d){finish(d);};
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+name+"&_="+Date.now();
+    s.onerror=function(){finish(null);};
+    document.body.appendChild(s);
+  }
+
+  function timeAgo(ts){
+    var d=new Date(ts); if(isNaN(d.getTime()))return"";
+    var s=Math.floor((Date.now()-d.getTime())/1000);
+    if(s<60)return"à l'instant";
+    var m=Math.floor(s/60); if(m<60)return"il y a "+m+" min";
+    var h=Math.floor(m/60); if(h<24)return"il y a "+h+" h";
+    var j=Math.floor(h/24); if(j<30)return"il y a "+j+" j";
+    return"il y a "+Math.floor(j/30)+" mois";
+  }
+
+  // ── render + analytics fill ──
+  var viewsData=null, statsByName=null, photosBySlug=null;
+  function fillPhotos(){
+    if(!photosBySlug) return;
+    document.querySelectorAll(".card").forEach(function(card){
+      var uri=photosBySlug[card.getAttribute("data-slug")];
+      if(uri){ var av=card.querySelector(".av"); if(av) av.innerHTML='<img src="'+uri+'" alt="">'; }
+    });
+  }
+  function fillViews(cards){
+    document.querySelectorAll(".card").forEach(function(card){
+      var c=cards[card.getAttribute("data-slug")]||{};
+      var v=card.querySelector(".u-views"); if(v)v.textContent="👁 "+(c.views||0);
+      var last=card.querySelector(".u-last"); if(last)last.textContent=c.last?"· "+timeAgo(c.last):"";
+      var sub=card.querySelector(".uses-sub"); if(sub)sub.textContent="↗ "+(c.share||0)+"   ▦ "+(c.qr||0)+"   👤 "+(c.save||0);
+    });
+  }
+  function fillStats(map){
+    document.querySelectorAll(".card").forEach(function(card){
+      var s=map[card.getAttribute("data-name")];
+      var el=card.querySelector(".u-rate"); if(el)el.textContent=s?"· ★ "+s.avg.toFixed(1)+" ("+s.count+")":"";
+    });
+  }
+  function applyCounters(){ if(viewsData)fillViews(viewsData); if(statsByName)fillStats(statsByName); if(photosBySlug)fillPhotos(); }
+
+  function render(list){
+    g.innerHTML="";
+    list.forEach(function(p){
+      var a=document.createElement("a");
+      a.href=p.slug+".html"; a.className="card";
+      a.setAttribute("data-slug", p.slug);
+      a.setAttribute("data-name", p.name);
+      a.innerHTML='<div class="av">'+esc(p.av)+'</div>'+
+        '<div class="cn">'+esc(p.name)+'</div>'+
+        '<div class="cr">'+esc(p.role)+'</div>'+
+        (p.city?'<span class="city">📍 '+esc(p.city)+'</span>':'')+
+        '<div class="uses"><span class="u-views">👁 —</span><span class="u-rate"></span><span class="u-last"></span></div>'+
+        '<div class="uses-sub"></div>';
+      g.appendChild(a);
+    });
+    applyCounters();
+  }
+
+  render(people); // instant render from the hardcoded fallback
+
+  // Live employee list (overrides the fallback if reachable).
+  // Retired cards (Actif = FALSE) drop out of this internal directory; their
+  // page + NFC link still work, they're just hidden here until reactivated.
+  jsonp(ENDPOINT+"?action=employees", function(data){
+    if(data && data.ok && data.employees && data.employees.length){
+      var active=data.employees.filter(function(e){ return e.actif!==false; });
+      render(active.map(fromEmployee));
+      var badge=document.querySelector(".badge");
+      if(badge) badge.textContent=active.length+" carte"+(active.length>1?"s":"")+" active"+(active.length>1?"s":"");
+    }
+  });
+  // Uploaded avatars (slug → data-URI). Applied on top of whatever is rendered.
+  jsonp(ENDPOINT+"?action=photos", function(data){
+    if(data && data.ok && data.photos){ photosBySlug=data.photos; fillPhotos(); }
+  });
+  // Per-card usage counters.
+  jsonp(ENDPOINT+"?action=views", function(data){
+    if(data && data.ok){ viewsData=data.cards||{}; fillViews(viewsData); }
+  });
+  // Ratings (matched by employee name).
+  jsonp(ENDPOINT+"?action=stats", function(data){
+    if(data && data.ok && data.stats){
+      statsByName={}; data.stats.forEach(function(s){ statsByName[s.employee]={avg:s.avg,count:s.count}; });
+      fillStats(statsByName);
+    }
   });
 </script>
   <!-- EC enhancements -->
