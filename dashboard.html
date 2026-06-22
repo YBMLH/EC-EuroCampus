@@ -369,7 +369,7 @@
 
     var listHtml="";
     if(!EMPLOYEES.length){
-      listHtml='<div class="state">Aucune fiche dans la feuille « Employes ».<br><b>Exécutez seedEmployees_() dans Apps Script pour les créer.</b></div>';
+      listHtml='<div class="state">Aucune fiche dans la feuille « Employes ».<br><b>Exécutez seedEmployees() dans Apps Script pour les créer.</b></div>';
     } else {
       EMPLOYEES.forEach(function(e,i){
         listHtml+='<div class="ed-row">'+
