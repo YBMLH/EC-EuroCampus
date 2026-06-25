@@ -131,11 +131,11 @@ function doGet(e) {
   else if (action === 'photo')     out = photo_(p.slug);
   else if (action === 'photos')    out = photos_();
   else if (action === 'views')     out = views_();
-  else if (action === 'dashboard') out = dashboard_();
+  else if (action === 'dashboard') out = dashboard_(isAuthed_(p));
   else if (action === 'login')     out = login_(p);
   else if (action === 'save')      out = save_(p);
   else if (action === 'setactive') out = setactive_(p);
-  else                             out = stats_();
+  else                             out = stats_(isAuthed_(p));
   var payload = JSON.stringify(out);
   var body = cb ? cb + '(' + payload + ')' : payload;
   return ContentService.createTextOutput(body)
@@ -147,7 +147,10 @@ function json_(obj) {
 }
 
 /* ---------- reviews aggregate ---------- */
-function stats_() {
+// includePII=true returns each review's comment + reviewer name (customer PII).
+// Anonymous callers (the public directory) get aggregates only — counts/averages
+// — never the raw comments or who wrote them.
+function stats_(includePII) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Avis');
   var stats = [], total = 0;
@@ -159,7 +162,9 @@ function stats_() {
       if (!map[name]) { map[name] = { employee:name, role:r[2], office:r[3], count:0, sum:0, reviews:[] }; order.push(name); }
       var note = Number(r[4])||0, m = map[name];
       m.count++; m.sum += note; total++;
-      m.reviews.push({ date:formatDate_(r[0]), rating:note, comment:String(r[5]||''), reviewer:String(r[6]||'') });
+      m.reviews.push({ date:formatDate_(r[0]), rating:note,
+        comment:  includePII ? String(r[5]||'') : '',
+        reviewer: includePII ? String(r[6]||'') : '' });
     });
     order.forEach(function (k) {
       var m = map[k];
@@ -188,9 +193,9 @@ function views_() {
 }
 
 /* ---------- combined dashboard payload ---------- */
-function dashboard_() {
+function dashboard_(includePII) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var s = stats_();
+  var s = stats_(includePII);
   var byName = {}; s.stats.forEach(function (x) { byName[x.employee] = x; });
 
   var emps = readEmployees_();
@@ -393,7 +398,10 @@ function savephoto_(p) {
   var slug = String(p.slug||'').trim();
   if (!slug) return { ok:false, error:'no slug' };
   var datauri = String(p.datauri||'');
-  if (datauri !== '' && datauri.indexOf('data:image/') !== 0) return { ok:false, error:'bad image' };
+  // Strict allow-list: only a base64 JPEG (what the dashboard produces). The
+  // base64 charset can't contain ", <, > or spaces, so a stored value can never
+  // break out of the <img src="…"> it's later rendered into.
+  if (datauri !== '' && !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(datauri)) return { ok:false, error:'bad image' };
   if (datauri.length > 200000) return { ok:false, error:'too large' };
   var lock = LockService.getScriptLock();
   try { lock.waitLock(20000); } catch (e) { return { ok:false, error:'busy' }; }
@@ -417,23 +425,32 @@ function savephoto_(p) {
 // short-lived session id. Writes then carry the session id, not the password,
 // so the secret no longer rides in every save URL / log line.
 function login_(p) {
+  var cache = CacheService.getScriptCache();
+  // Brute-force brake. Apps Script can't see the client IP, so this is a GLOBAL
+  // counter: 5 wrong tries lock all logins for 60s. Crude, but combined with a
+  // strong passphrase it makes online guessing infeasible.
+  var FAILS = 'login_fails';
+  if (Number(cache.get(FAILS) || 0) >= 5) return { ok:false, error:'throttled' };
   var stored = PropertiesService.getScriptProperties().getProperty('ADMIN_HASH') || '';
-  if (!stored || String(p.token||'') !== stored) return { ok:false, error:'auth' };
+  if (!stored || String(p.token||'') !== stored) {
+    cache.put(FAILS, String(Number(cache.get(FAILS) || 0) + 1), 60);
+    return { ok:false, error:'auth' };
+  }
+  cache.remove(FAILS);
   var sid = Utilities.getUuid().replace(/-/g,'') + Math.random().toString(36).slice(2);
-  CacheService.getScriptCache().put('sess_' + sid, '1', 1800);   // 30-min TTL
+  cache.put('sess_' + sid, '1', 1800);   // 30-min TTL
   return { ok:true, session: sid };
 }
+// Session-only. The raw admin hash is no longer accepted as a bearer token, so
+// it can't be replayed against the API — it's used solely inside login_.
 function checkAuth_(p) {
   if (p.session) {
     var cache = CacheService.getScriptCache(), key = 'sess_' + String(p.session);
     if (cache.get(key)) { cache.put(key, '1', 1800); return { ok:true }; }   // sliding window
-    return { ok:false, error:'auth' };
   }
-  // Back-compat: a direct admin hash still works.
-  var stored = PropertiesService.getScriptProperties().getProperty('ADMIN_HASH') || '';
-  if (stored && String(p.token||'') === stored) return { ok:true };
   return { ok:false, error:'auth' };
 }
+function isAuthed_(p) { return checkAuth_(p).ok; }
 
 /* ---------- review summary tab (unchanged) ---------- */
 function ensureDashboard_(ss) {
@@ -535,9 +552,19 @@ on their next load (rendered live from the Sheet). The avatar **initials**, **na
   `Photos` tab are created/back-filled automatically on first use — **existing data is never cleared
   or moved** (columns are matched by header name, so don't re-run `seedEmployees`, which overwrites).
 - **Auth:** the password never leaves the browser in plaintext — only its SHA-256 hash is sent, once,
-  at login; the server returns a short-lived **session token** (30 min) that writes use instead. So the
-  password hash no longer rides in every save URL. Keep `ADMIN_HASH` out of the repo. The public
-  passcode gate (`assets/gate.js`) still controls read access; `ADMIN_HASH` is what guards edits.
+  at login; the server returns a short-lived **session token** (30 min) that every write carries. The
+  raw hash is **no longer accepted as an API credential** (session-only), and login is **rate-limited**
+  (5 wrong tries lock all logins for ~60s) to blunt brute-force. Use a long, random admin passphrase —
+  it's the one real security boundary. Keep `ADMIN_HASH` out of the repo.
+- **Privacy (review PII):** raw review **comments** and **reviewer names** are returned **only** to a
+  logged-in dashboard (valid session). Anonymous callers of `?action=stats` / `?action=dashboard` get
+  aggregates only (counts / averages / view stats). So open the dashboard's review drill-down while
+  logged in (**Gérer les cartes**) to read comments.
+- **Read access:** the `assets/gate.js` passcode is a soft UI curtain only — the directory/dashboard
+  HTML and the employee contact fields are public by nature (static site + NFC cards). Don't rely on it
+  for confidentiality; the protections above guard *edits* and *customer PII*, which is what matters.
+- **Photo uploads** are validated server-side as base64 JPEG only (the format the dashboard produces),
+  so a stored value can't smuggle markup into the page.
 - **Clearing a field:** because cards keep their built-in HTML when a Sheet field is blank, emptying a
   field in the editor reverts that field to its static default rather than showing nothing.
 - **Social-share previews:** WhatsApp/Facebook link-preview text comes from each page's static OG meta
