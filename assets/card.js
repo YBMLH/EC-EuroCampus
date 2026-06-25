@@ -113,7 +113,10 @@
     return lines.join("\r\n");
   }
   function setText(sel, val) { var e = doc.querySelector(sel); if (e && val != null && val !== "") e.textContent = val; }
-  function setHref(sel, val) { var e = doc.querySelector(sel); if (e && val) e.setAttribute("href", val); }
+  // Only allow safe schemes — blocks a "javascript:"/"data:" value from the Sheet
+  // turning a card link into an XSS vector.
+  function safeUrl(val) { val = String(val || "").trim(); return /^(https?:|tel:|mailto:)/i.test(val) ? val : ""; }
+  function setHref(sel, val) { var e = doc.querySelector(sel); var u = safeUrl(val); if (e && u) e.setAttribute("href", u); }
   function applyEmployee(info, r) {
     setText(".person-name", r.nom);
     setText(".person-role", r.poste);
@@ -137,12 +140,12 @@
     if (r.nom) doc.title = r.nom + " — Euro Campus";
   }
   function applyPhoto(uri) {
-    if (!uri) return;
+    if (!uri || uri.indexOf("data:image/") !== 0) return;
     var av = doc.querySelector(".avatar");
     if (!av) return;
     var img = av.querySelector("img");
-    if (img) { img.setAttribute("src", uri); }
-    else { av.innerHTML = '<img src="' + uri + '" alt="">'; }
+    if (!img) { img = doc.createElement("img"); img.alt = ""; av.innerHTML = ""; av.appendChild(img); }
+    img.src = uri; // property assignment — never parsed as HTML, so no breakout
   }
   function hydrateCard(info) {
     if (!REVIEW_ENDPOINT || !info.isCard) return;

@@ -387,13 +387,20 @@
   function openDetail(slug){
     var r=null; DASH.rows.forEach(function(x){ if(x.slug===slug) r=x; });
     if(!r) return;
-    var reviews=(r.reviews||[]).slice().reverse();
-    var list=reviews.length?reviews.map(function(rv){
-      return '<div class="rev"><div class="rev-top"><span class="rev-stars">'+stars(rv.rating)+'</span>'+
-        (rv.date?'<span class="rev-date">'+escapeHtml(rv.date)+'</span>':'')+'</div>'+
-        '<div class="rev-cmt">'+(rv.comment?escapeHtml(rv.comment):'<i>(sans commentaire)</i>')+'</div>'+
-        (rv.reviewer?'<div class="rev-by">— '+escapeHtml(rv.reviewer)+'</div>':'')+'</div>';
-    }).join(""):'<div class="rev-empty">Aucun commentaire.</div>';
+    // Raw comments + reviewer names are customer PII — the server only sends them
+    // with a valid session, so they show only when logged in (Gérer les cartes).
+    var list;
+    if(!adminSession()){
+      list='<div class="rev-empty">🔒 Connectez-vous dans l’onglet « Gérer les cartes » pour voir les commentaires.</div>';
+    } else {
+      var reviews=(r.reviews||[]).slice().reverse();
+      list=reviews.length?reviews.map(function(rv){
+        return '<div class="rev"><div class="rev-top"><span class="rev-stars">'+stars(rv.rating)+'</span>'+
+          (rv.date?'<span class="rev-date">'+escapeHtml(rv.date)+'</span>':'')+'</div>'+
+          '<div class="rev-cmt">'+(rv.comment?escapeHtml(rv.comment):'<i>(sans commentaire)</i>')+'</div>'+
+          (rv.reviewer?'<div class="rev-by">— '+escapeHtml(rv.reviewer)+'</div>':'')+'</div>';
+      }).join(""):'<div class="rev-empty">Aucun commentaire.</div>';
+    }
     var m=ensureModal("ec-detail");
     m.querySelector(".ec-modal-card").innerHTML=
       '<div class="ec-modal-title">'+escapeHtml(r.employee)+'</div>'+
@@ -438,11 +445,11 @@
       listHtml='<div class="state">Aucune fiche dans la feuille « Employes ».<br><b>Exécutez seedEmployees() dans Apps Script pour les créer.</b></div>';
     } else {
       EMPLOYEES.forEach(function(e,i){
-        var retired=(e.actif===false), ph=PHOTOS[e.slug];
-        var avInner = ph ? '<img src="'+ph+'" alt="">'
-                         : escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
+        var retired=(e.actif===false);
+        var init=escapeHtml(e.initiales||(e.nom||"?").slice(0,2).toUpperCase());
+        // initials only here; any photo is set as an <img> via property below
         listHtml+='<div class="ed-row'+(retired?" off":"")+'">'+
-          '<div class="ed-av">'+avInner+'</div>'+
+          '<div class="ed-av" data-ph="'+escapeHtml(e.slug)+'">'+init+'</div>'+
           '<div class="ed-who"><div class="nm">'+escapeHtml(e.nom||e.slug)+'</div>'+
             '<div class="rl">'+escapeHtml([e.poste,e.bureau].filter(Boolean).join(" · "))+'</div></div>'+
           (authed?'<div class="ed-actions">'+
@@ -455,6 +462,11 @@
       });
     }
     ed.innerHTML=bar+listHtml;
+    // set avatar photos via property (never concatenate the data-URI into HTML)
+    ed.querySelectorAll(".ed-av[data-ph]").forEach(function(av){
+      var uri=PHOTOS[av.getAttribute("data-ph")];
+      if(uri && uri.indexOf("data:image/")===0){ var img=document.createElement("img"); img.alt=""; img.src=uri; av.innerHTML=""; av.appendChild(img); }
+    });
 
     if(authed){
       var lo=$("logout"); if(lo) lo.addEventListener("click", function(ev){ ev.preventDefault(); clearSession(); renderEditor(); });
@@ -470,9 +482,11 @@
             if(data && data.ok && data.session){
               try{sessionStorage.setItem(SESSION_KEY,data.session);}catch(e){}
               renderEditor();
+              loadDash();   // re-fetch with the session so review comments populate
             } else {
               go.disabled=false; go.textContent="Déverrouiller";
-              inp.value=""; inp.placeholder="Mot de passe incorrect — réessayez";
+              inp.value=""; inp.placeholder=(data&&data.error==="throttled")
+                ? "Trop d'essais — patientez 1 min" : "Mot de passe incorrect — réessayez";
             }
           });
         });
@@ -506,7 +520,7 @@
       '<div class="ec-modal-title">Modifier la fiche</div>'+
       '<div class="ec-modal-sub">'+escapeHtml(e.slug)+'</div>'+
       '<div class="ef-photo">'+
-        '<div class="pv" id="ph-pv">'+(curPhoto?'<img src="'+curPhoto+'" alt="">':fallbackInit)+'</div>'+
+        '<div class="pv" id="ph-pv">'+fallbackInit+'</div>'+
         '<div class="pbtns">'+
           '<button class="ph-btn" id="ph-pick" type="button">Téléverser une photo</button>'+
           '<button class="ph-btn rm" id="ph-rm" type="button"'+(curPhoto?'':' style="display:none"')+'>Retirer la photo</button>'+
@@ -524,13 +538,16 @@
     // photo controls — pendingPhoto: undefined = unchanged, "" = remove, "data:…" = new
     var pendingPhoto;
     var pv=$("ph-pv"), pick=$("ph-pick"), rm=$("ph-rm"), file=$("ph-file");
+    // set the preview image via property (no data-URI concatenated into HTML)
+    function setPv(uri){ var img=document.createElement("img"); img.alt=""; img.src=uri; pv.innerHTML=""; pv.appendChild(img); }
+    if(curPhoto && curPhoto.indexOf("data:image/")===0) setPv(curPhoto);
     pick.addEventListener("click", function(){ file.click(); });
     file.addEventListener("change", function(){
       var f=file.files && file.files[0]; if(!f) return;
       hint.textContent=""; hint.classList.remove("show");
       resizeImage(f, 256, function(uri){
         if(!uri){ hint.textContent="Image illisible. Essayez un autre fichier."; hint.classList.add("show"); return; }
-        pendingPhoto=uri; pv.innerHTML='<img src="'+uri+'" alt="">'; rm.style.display="";
+        pendingPhoto=uri; setPv(uri); rm.style.display="";
       });
     });
     rm.addEventListener("click", function(){
@@ -598,13 +615,15 @@
     if(!employeesLoaded){ employeesLoaded=true; loadEmployees(); }
   });
 
-  (function load(){
+  function loadDash(){
     if(!ENDPOINT || ENDPOINT.indexOf("http")!==0){ setState("Endpoint non configuré."); return; }
-    jsonp(ENDPOINT+"?action=dashboard", function(data){
+    var s=adminSession();   // send the session (when logged in) so PII comments come back
+    jsonp(ENDPOINT+"?action=dashboard"+(s?"&session="+encodeURIComponent(s):""), function(data){
       if(data) window.ecDash(data);
       else if($("state")) setState("Impossible de joindre le serveur. Réessayez.");
     });
-  })();
+  }
+  loadDash();
 </script>
 </body>
 </html>
