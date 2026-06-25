@@ -147,6 +147,35 @@ html[data-theme="dark"] .ec-toast{ background:#04323a; }
 }
 .ec-cancel:hover{ color:var(--ink); }
 
+/* ---- "Développé par MK" credit (injected by card.js on every page) ---- */
+.ec-credit{
+  display:flex; align-items:center; gap:7px;
+  width:fit-content; margin:14px auto 22px; padding:7px 15px;
+  border-radius:100px; text-decoration:none;
+  background:rgba(255,255,255,.62); border:1px solid var(--border);
+  -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  box-shadow:0 4px 16px rgba(14,92,102,.10);
+  font-family:'Manrope',sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.02em;
+  position:relative; z-index:2; isolation:isolate;
+  transition:transform .22s, box-shadow .22s, border-color .22s;
+  animation:ec-credit-in .6s cubic-bezier(.22,.68,0,1.2) both;
+}
+.ec-credit:hover{ transform:translateY(-2px); box-shadow:0 10px 26px rgba(37,211,102,.24); border-color:rgba(37,211,102,.4); }
+.ec-credit:active{ transform:scale(.97); }
+.ec-credit-wa{ width:15px; height:15px; flex-shrink:0; fill:#25d366; animation:ec-credit-pulse 2.4s ease-in-out infinite; }
+.ec-credit-txt{
+  background:linear-gradient(100deg, var(--teal-deep) 0%, var(--teal) 22%, #25d366 50%, var(--teal) 78%, var(--teal-deep) 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+  animation:ec-credit-shimmer 3.8s linear infinite;
+}
+@keyframes ec-credit-shimmer{ to{ background-position:220% center; } }
+@keyframes ec-credit-pulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.18); opacity:.82; } }
+@keyframes ec-credit-in{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+html[data-theme="dark"] .ec-credit{ background:rgba(17,37,42,.55); }
+
 @media (prefers-reduced-motion:reduce){
   .ec-tool,.ec-modal,.ec-modal-card,.ec-toast,.ec-close,.ec-review-btn,.ec-star{ transition:none; }
+  .ec-credit,.ec-credit-wa,.ec-credit-txt{ animation:none; }
 }
