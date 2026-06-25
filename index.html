@@ -133,7 +133,10 @@
     if(!photosBySlug) return;
     document.querySelectorAll(".card").forEach(function(card){
       var uri=photosBySlug[card.getAttribute("data-slug")];
-      if(uri){ var av=card.querySelector(".av"); if(av) av.innerHTML='<img src="'+uri+'" alt="">'; }
+      if(uri && uri.indexOf("data:image/")===0){
+        var av=card.querySelector(".av");
+        if(av){ var img=document.createElement("img"); img.alt=""; img.src=uri; av.innerHTML=""; av.appendChild(img); }
+      }
     });
   }
   function fillViews(cards){
