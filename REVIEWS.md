@@ -485,28 +485,32 @@ function setAdminPassword() {
   PropertiesService.getScriptProperties().setProperty('ADMIN_HASH', hex);
 }
 
-// Run once to populate the Employes tab with the 15 cards. Edit the rest from the dashboard afterwards.
+// Populates the Employes tab with the real team (cards 01–13). Re-running it
+// REPLACES the Employes rows (photos in the Photos tab are kept). Edit any
+// field afterwards from the dashboard.
 function seedEmployees() {
   var sh = empSheet_();
   if (sh.getLastRow() > 1) sh.getRange(2,1,sh.getLastRow()-1,EMP_HEADERS.length).clearContent();
   var now = new Date();
-  // slug, nom, poste, departement, bureau, mapurl, telephone, email, whatsapp, linkedin, initiales
+  // slug, nom, poste, departement(spécialisation), bureau, mapurl, telephone, email, whatsapp, linkedin, initiales
+  var MAP = 'https://maps.app.goo.gl/svpwEEanJJWajUJe9';       // siège Tizi Ouzou
+  var MAIL = 'contact@euro-campus.com';
+  var LI = 'https://www.linkedin.com/company/euro-campus-dz/';
+  var B = 'Tizi Ouzou — Siège';
   [
-    ['employe-01','Hakim Bennini','Directeur Général','Direction','Tizi Ouzou — Siège','https://maps.app.goo.gl/svpwEEanJJWajUJe9','+213550631388','contact@euro-campus.com','213550631388','https://www.linkedin.com/company/euro-campus-dz/','HB'],
-    ['employe-02','Prénom Nom','Directrice des Opérations','','Tizi Ouzou','','','contact@euro-campus.com','','','PN'],
-    ['employe-03','Prénom Nom','Conseiller en Orientation','','Tizi Ouzou','','','contact@euro-campus.com','','','PN'],
-    ['employe-04','Prénom Nom','Conseillère en Orientation','','Tizi Ouzou','','','contact@euro-campus.com','','','PN'],
-    ['employe-05','Prénom Nom','Responsable Admissions','','Tizi Ouzou','','','contact@euro-campus.com','','','PN'],
-    ['employe-06','Prénom Nom','Responsable Béjaïa','','Béjaïa','','','contact@euro-campus.com','','','PN'],
-    ['employe-07','Prénom Nom','Conseiller en Orientation','','Béjaïa','','','contact@euro-campus.com','','','PN'],
-    ['employe-08','Prénom Nom','Responsable Alger','','Alger','','','contact@euro-campus.com','','','PN'],
-    ['employe-09','Prénom Nom','Conseillère en Orientation','','Alger','','','contact@euro-campus.com','','','PN'],
-    ['employe-10','Prénom Nom','Responsable Oran','','Oran','','','contact@euro-campus.com','','','PN'],
-    ['employe-11','Prénom Nom','Conseiller en Orientation','','Oran','','','contact@euro-campus.com','','','PN'],
-    ['employe-12','Prénom Nom','Responsable Constantine','','Constantine','','','contact@euro-campus.com','','','PN'],
-    ['employe-13','Prénom Nom','Responsable Annaba','','Annaba','','','contact@euro-campus.com','','','PN'],
-    ['employe-14','Prénom Nom','Responsable Boumerdès','','Boumerdès','','','contact@euro-campus.com','','','PN'],
-    ['employe-15','Prénom Nom','Chargée Communication','','Tizi Ouzou','','','contact@euro-campus.com','','','PN']
+    ['employe-01','Hakim Bennini','Co-Fondateur / Co-Directeur','Direction',B,MAP,'+213550631388',MAIL,'213550631388',LI,'HB'],
+    ['employe-02','Said Bezzaou','Co-Fondateur / Co-Directeur','Direction',B,MAP,'',MAIL,'',LI,'SB'],
+    ['employe-03','Sarah Dehmas','Responsable Communication','Communication',B,MAP,'',MAIL,'',LI,'SD'],
+    ['employe-04','Mohamed Amine Bouaiche','Conseiller · Relations internationales','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie',B,MAP,'+213560981136',MAIL,'213560981136',LI,'MB'],
+    ['employe-05','Dahia Slimani','Conseillère en orientation','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie',B,MAP,'+213560980962',MAIL,'213560980962',LI,'DS'],
+    ['employe-06','Sadia Ouerdi','Conseillère en orientation','Canada, USA, Roumanie, Turquie',B,MAP,'+213550233166',MAIL,'213550233166',LI,'SO'],
+    ['employe-07','Yasmine Mazed','Conseillère en orientation','Canada, USA, Roumanie, Turquie',B,MAP,'+213550233710',MAIL,'213550233710',LI,'YM'],
+    ['employe-08','Ania Saad','Conseillère · Chef de service','Canada, USA, Roumanie, Turquie',B,MAP,'+213550231459',MAIL,'213550231459',LI,'AS'],
+    ['employe-09','Dehbia Halem','Conseillère en orientation','Écoles privées France, Italie, Espagne',B,MAP,'+213560981531',MAIL,'213560981531',LI,'DH'],
+    ['employe-10','Manel Aitout','Conseillère en orientation','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie',B,MAP,'+213560981575',MAIL,'213560981575',LI,'MA'],
+    ['employe-11','Melinda Belkadi','Conseillère en orientation','Écoles privées France, Italie, Espagne',B,MAP,'+213550233711',MAIL,'213550233711',LI,'MB'],
+    ['employe-12','Salim Yahiaoui','Conseiller en orientation','Écoles privées France, Italie, Espagne',B,MAP,'+213550235278',MAIL,'213550235278',LI,'SY'],
+    ['employe-13','Amel Sefsaf','Conseillère · Chef de service','Écoles privées France, Italie, Espagne',B,MAP,'+213550235419',MAIL,'213550235419',LI,'AS']
   ].forEach(function (d) { sh.appendRow(d.concat([now])); });
 }
 ```
