@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#1EA9BA" />
 
   <title>À propos — Euro Campus</title>
-  <meta name="description" content="Euro Campus — Études & Immigration. Votre partenaire pour les études à l'étranger : orientation, admissions, visa et installation." />
+  <meta name="description" content="EUROCAMPUS — agence spécialisée dans l'accompagnement des étudiants algériens pour leurs études à l'international : orientation, admission, visa." />
 
   <!-- Open Graph (link preview on WhatsApp / Messenger) -->
-  <meta property="og:title" content="À propos d'Euro Campus" />
-  <meta property="og:description" content="Études & Immigration · 9+ ans d'expertise · 7 bureaux en Algérie" />
+  <meta property="og:title" content="À propos d'EUROCAMPUS" />
+  <meta property="og:description" content="Études à l'international · orientation, admission & visa · 8 destinations" />
   <meta property="og:image" content="https://ybmlh.github.io/EC-EuroCampus/assets/icon.svg" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="fr_DZ" />
@@ -37,11 +37,10 @@
 
     .page{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:22px 16px 56px; display:flex; flex-direction:column; gap:15px; }
     .page > *{ animation:rise .55s cubic-bezier(.22,.68,0,1.2) both; }
-    .page > *:nth-child(1){animation-delay:.04s}.page > *:nth-child(2){animation-delay:.10s}
-    .page > *:nth-child(3){animation-delay:.16s}.page > *:nth-child(4){animation-delay:.22s}
-    .page > *:nth-child(5){animation-delay:.28s}.page > *:nth-child(6){animation-delay:.34s}
-    .page > *:nth-child(7){animation-delay:.40s}.page > *:nth-child(8){animation-delay:.46s}
-    .page > *:nth-child(9){animation-delay:.52s}
+    .page > *:nth-child(1){animation-delay:.04s}.page > *:nth-child(2){animation-delay:.09s}
+    .page > *:nth-child(3){animation-delay:.14s}.page > *:nth-child(4){animation-delay:.19s}
+    .page > *:nth-child(5){animation-delay:.24s}.page > *:nth-child(6){animation-delay:.29s}
+    .page > *:nth-child(7){animation-delay:.34s}.page > *:nth-child(8){animation-delay:.39s}
     @keyframes rise{ from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
     /* Brand bar */
@@ -67,7 +66,7 @@
     .label{ font-size:.7rem; font-weight:800; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 4px; margin-bottom:-3px; }
 
     /* Intro / mission */
-    .about-intro{ background:var(--white); border:1px solid var(--border); border-radius:16px; padding:18px; font-size:.94rem; line-height:1.62; color:var(--ink); box-shadow:var(--sh-sm); }
+    .about-intro{ background:var(--white); border:1px solid var(--border); border-radius:16px; padding:18px; font-size:.92rem; line-height:1.62; color:var(--ink); box-shadow:var(--sh-sm); }
     .about-intro strong{ color:var(--teal-deep); }
 
     /* Stats */
@@ -76,18 +75,25 @@
     .stat .n{ font-family:'Poppins',sans-serif; font-weight:700; font-size:1.3rem; color:var(--teal-deep); line-height:1; }
     .stat .t{ font-size:.62rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:6px; line-height:1.3; }
 
-    /* Services */
-    .svc{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .svc-item{ display:flex; align-items:center; gap:10px; background:var(--white); border:1px solid var(--border); border-radius:14px; padding:13px 13px; box-shadow:var(--sh-sm); font-size:.85rem; font-weight:600; color:var(--ink); line-height:1.25; }
-    .svc-item .ic{ width:34px; height:34px; flex-shrink:0; border-radius:10px; background:linear-gradient(135deg,var(--teal),var(--teal-light)); display:flex; align-items:center; justify-content:center; }
-    .svc-item .ic svg{ width:18px; height:18px; fill:#fff; }
+    /* Why choose us */
+    .why{ display:flex; flex-direction:column; gap:10px; }
+    .why-item{ background:var(--white); border:1px solid var(--border); border-radius:15px; padding:15px 16px; box-shadow:var(--sh-sm); }
+    .why-item .wt{ font-weight:800; font-size:.92rem; color:var(--teal-deep); margin-bottom:5px; }
+    .why-item .wd{ font-size:.86rem; line-height:1.55; color:var(--ink); }
 
-    /* Offices */
-    .offices{ display:flex; flex-wrap:wrap; gap:8px; }
-    .office{ font-size:.78rem; font-weight:700; color:var(--teal-deep); background:rgba(30,169,186,.08); border:1px solid var(--border); border-radius:100px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; }
-    .office svg{ width:12px; height:12px; fill:var(--teal); }
+    /* Method steps */
+    .method{ display:flex; flex-direction:column; gap:10px; }
+    .step{ display:flex; gap:13px; align-items:flex-start; background:var(--white); border:1px solid var(--border); border-radius:15px; padding:14px 16px; box-shadow:var(--sh-sm); }
+    .step .sn{ flex-shrink:0; width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--teal),var(--teal-deep)); color:#fff; font-family:'Poppins',sans-serif; font-weight:700; font-size:.95rem; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(30,169,186,.3); }
+    .step .st{ font-weight:800; font-size:.9rem; color:var(--ink); margin-bottom:3px; }
+    .step .sd{ font-size:.84rem; line-height:1.5; color:var(--muted); }
 
-    /* Contact grid (reused look from cards) */
+    /* Pills (destinations / offices) */
+    .pills{ display:flex; flex-wrap:wrap; gap:8px; }
+    .pill{ font-size:.8rem; font-weight:700; color:var(--teal-deep); background:rgba(30,169,186,.08); border:1px solid var(--border); border-radius:100px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; }
+    .pill svg{ width:12px; height:12px; fill:var(--teal); }
+
+    /* Contact grid */
     .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .btn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; padding:17px 10px; border-radius:15px; text-decoration:none; font-size:.84rem; font-weight:700; transition:transform .18s, box-shadow .18s; border:none; cursor:pointer; }
     .btn:hover{ transform:translateY(-3px); box-shadow:var(--sh-md); }
@@ -144,65 +150,84 @@
 
   <!-- Hero -->
   <div class="hero">
-    <h1 class="about-title">À propos d'Euro Campus</h1>
-    <div class="about-sub">Votre partenaire pour les études et l'immigration à l'étranger.</div>
+    <h1 class="about-title">À propos d'EUROCAMPUS</h1>
+    <div class="about-sub">Votre partenaire pour les études à l'international.</div>
     <span class="about-badge">Études &amp; Immigration</span>
   </div>
 
-  <!-- Mission — ✏️ modifiez ce texte librement -->
+  <!-- Qui sommes-nous -->
   <div class="about-intro">
-    Depuis plus de <strong>9 ans</strong>, Euro Campus accompagne les étudiants dans leur projet
-    d'études à l'étranger — de l'<strong>orientation</strong> au <strong>visa</strong>, jusqu'à
-    l'installation. Notre mission : rendre les études internationales accessibles, simples et réussies,
-    avec un suivi personnalisé à chaque étape.
+    <strong>EUROCAMPUS</strong> est une agence spécialisée dans l'accompagnement des étudiants algériens
+    souhaitant poursuivre leurs études à l'international. Nous intervenons à chaque étape du projet
+    académique : orientation, choix de la destination, admission dans les établissements partenaires,
+    constitution du dossier et démarches de visa.
+    <br><br>
+    Notre mission : rendre les études à l'international <strong>accessibles, claires et sécurisées</strong>,
+    avec des solutions adaptées au profil, au budget et aux objectifs de chaque étudiant — en plaçant la
+    confiance, la transparence et le suivi personnalisé au cœur de notre accompagnement.
   </div>
 
   <!-- Key figures -->
   <div class="stats">
     <div class="stat"><div class="n">9+</div><div class="t">Ans d'expertise</div></div>
-    <div class="stat"><div class="n">7</div><div class="t">Bureaux en Algérie</div></div>
+    <div class="stat"><div class="n">8</div><div class="t">Destinations</div></div>
     <div class="stat"><div class="n">A→Z</div><div class="t">Accompagnement</div></div>
   </div>
 
-  <!-- Services -->
-  <div class="label">Nos services</div>
-  <div class="svc">
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></span>
-      Orientation &amp; choix de filière
+  <!-- Destinations -->
+  <div class="label">Nos destinations</div>
+  <div class="pills">
+    <span class="pill">🇫🇷 France</span>
+    <span class="pill">🇨🇦 Canada</span>
+    <span class="pill">🇺🇸 USA</span>
+    <span class="pill">🇮🇹 Italie</span>
+    <span class="pill">🇪🇸 Espagne</span>
+    <span class="pill">🇷🇴 Roumanie</span>
+    <span class="pill">🇹🇷 Turquie</span>
+    <span class="pill">🇬🇧 Royaume-Uni</span>
+  </div>
+
+  <!-- Why choose us -->
+  <div class="label">Pourquoi EUROCAMPUS ?</div>
+  <div class="why">
+    <div class="why-item">
+      <div class="wt">Une expertise dédiée aux études à l'étranger</div>
+      <div class="wd">Spécialisés exclusivement dans l'orientation et l'accompagnement académique international, nous maîtrisons les exigences des établissements partenaires et les procédures d'admission propres à chaque pays.</div>
     </div>
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span>
-      Admissions universitaires
+    <div class="why-item">
+      <div class="wt">Un accompagnement complet</div>
+      <div class="wd">De la définition du projet jusqu'au départ : conseil et orientation, sélection de la destination et de l'établissement, dossier d'admission, démarches de visa, et suivi avant comme après l'obtention du visa.</div>
     </div>
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></span>
-      Visa &amp; immigration
+    <div class="why-item">
+      <div class="wt">Des partenariats académiques fiables</div>
+      <div class="wd">Nous collaborons avec des établissements reconnus, garantissant des parcours d'études conformes aux standards internationaux.</div>
     </div>
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
-      Logement &amp; installation
-    </div>
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
-      Préparation linguistique
-    </div>
-    <div class="svc-item">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
-      Suivi personnalisé
+    <div class="why-item">
+      <div class="wt">Une approche humaine et rassurante</div>
+      <div class="wd">Écoute, disponibilité et clarté des informations : nous rassurons les étudiants et leurs parents tout au long du processus.</div>
     </div>
   </div>
 
+  <!-- Method -->
+  <div class="label">Notre méthode d'accompagnement</div>
+  <div class="method">
+    <div class="step"><span class="sn">1</span><div><div class="st">Analyse du profil de l'étudiant</div><div class="sd">Parcours académique, niveau linguistique, budget et objectifs professionnels — pour proposer des solutions réalistes et adaptées.</div></div></div>
+    <div class="step"><span class="sn">2</span><div><div class="st">Orientation &amp; choix de la destination</div><div class="sd">Nous conseillons les destinations et établissements les plus pertinents en fonction du profil et du projet.</div></div></div>
+    <div class="step"><span class="sn">3</span><div><div class="st">Constitution du dossier d'admission</div><div class="sd">Préparation complète du dossier (formulaires, pièces académiques, lettres, justificatifs), dans le respect des exigences de chaque établissement.</div></div></div>
+    <div class="step"><span class="sn">4</span><div><div class="st">Accompagnement visa</div><div class="sd">Vérification des documents, conseils pratiques et préparation aux entretiens si nécessaire.</div></div></div>
+    <div class="step"><span class="sn">5</span><div><div class="st">Suivi &amp; préparation au départ</div><div class="sd">Une fois l'admission et le visa obtenus, un suivi jusqu'au départ pour garantir une transition sereine.</div></div></div>
+  </div>
+
   <!-- Offices -->
-  <div class="label">Nos bureaux</div>
-  <div class="offices">
-    <span class="office"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>Tizi Ouzou · Siège</span>
-    <span class="office">Béjaïa</span>
-    <span class="office">Alger</span>
-    <span class="office">Oran</span>
-    <span class="office">Constantine</span>
-    <span class="office">Annaba</span>
-    <span class="office">Boumerdès</span>
+  <div class="label">Nos bureaux en Algérie</div>
+  <div class="pills">
+    <span class="pill"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>Tizi Ouzou · Siège</span>
+    <span class="pill">Béjaïa</span>
+    <span class="pill">Alger</span>
+    <span class="pill">Oran</span>
+    <span class="pill">Constantine</span>
+    <span class="pill">Annaba</span>
+    <span class="pill">Boumerdès</span>
   </div>
 
   <!-- Contact -->
@@ -227,7 +252,7 @@
   </div>
 
   <!-- Social -->
-  <div class="label">Suivez Euro Campus</div>
+  <div class="label">Suivez EUROCAMPUS</div>
   <div class="social">
     <a class="s-btn" href="https://www.instagram.com/Euro_Campus" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
@@ -257,7 +282,7 @@
 
   <div class="divider"></div>
   <div class="footer">
-    Euro Campus · 9+ ans d'expertise · <a href="https://eurocampuss.com">eurocampuss.com</a>
+    EUROCAMPUS · Études à l'international · <a href="https://eurocampuss.com">eurocampuss.com</a>
   </div>
 
 </div>
