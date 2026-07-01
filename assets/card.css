@@ -121,6 +121,19 @@ html[data-theme="dark"] .ec-toast{ background:#04323a; }
 .ec-review-btn:active{ transform:scale(.97); }
 .ec-review-btn svg{ width:21px; height:21px; fill:#f5a623; }
 
+/* ---- "À propos" CTA (bottom of card) ---- */
+.ec-about-btn{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  width:100%; padding:15px; border:1px solid var(--border); cursor:pointer;
+  border-radius:15px; background:var(--teal-pale); color:var(--teal-deep); text-decoration:none;
+  font-family:'Manrope',sans-serif; font-weight:700; font-size:.94rem;
+  box-shadow:var(--sh-sm,0 2px 12px rgba(14,92,102,.08));
+  transition:transform .18s, box-shadow .18s, background .18s;
+}
+.ec-about-btn:hover{ transform:translateY(-3px); box-shadow:0 10px 28px rgba(14,92,102,.16); }
+.ec-about-btn:active{ transform:scale(.97); }
+.ec-about-btn svg{ width:20px; height:20px; fill:var(--teal); }
+
 /* ---- Review form ---- */
 .ec-stars{ display:flex; justify-content:center; gap:6px; margin:6px 0 16px; }
 .ec-star{
