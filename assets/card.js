@@ -27,7 +27,8 @@
     moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
     share:'<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 100-6 3 3 0 00-3 3c0 .24.04.47.09.7L8.04 9.81A3 3 0 003 12a3 3 0 005.04 2.19l7.12 4.16c-.05.21-.08.43-.08.65a2.92 2.92 0 102.92-2.92z"/></svg>',
     qr:   '<svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 16h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm0-4h2v2h-2v-2zm-2 0h-2 4-2zm2 0h2v2h-2v-2z"/></svg>',
-    star: '<svg viewBox="0 0 24 24"><path d="M12 17.27l5.18 3.12-1.37-5.9 4.58-3.97-6.03-.52L12 4.5 9.64 10l-6.03.52 4.58 3.97-1.37 5.9z"/></svg>'
+    star: '<svg viewBox="0 0 24 24"><path d="M12 17.27l5.18 3.12-1.37-5.9 4.58-3.97-6.03-.52L12 4.5 9.64 10l-6.03.52 4.58 3.97-1.37 5.9z"/></svg>',
+    info: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
   };
 
   /* ---------- theme ---------- */
@@ -464,15 +465,22 @@
       doc.body.appendChild(bar);
     }
 
-    // Review CTA at the bottom of the card
+    // "À propos" + review CTAs at the bottom of the card
     if (info.isCard) {
       var page = doc.querySelector(".page");
       if (page) {
+        var divider = page.querySelector(".divider");
+
+        // About-page link (secondary CTA)
+        var aboutBtn = el("a", "ec-about-btn", ICONS.info + "<span>À propos d'Euro Campus</span>");
+        aboutBtn.setAttribute("href", "about.html");
+        page.insertBefore(aboutBtn, divider || null);
+
+        // Review CTA
         var openReview = buildReviewModal(info);
         var reviewBtn = el("button", "ec-review-btn", ICONS.star + "<span>Laisser un avis</span>");
         reviewBtn.type = "button";
         reviewBtn.addEventListener("click", function () { trackEvent("review_open", info); openReview(); });
-        var divider = page.querySelector(".divider");
         page.insertBefore(reviewBtn, divider || null);
       }
     }
