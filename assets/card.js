@@ -120,6 +120,8 @@
   function safeUrl(val) { val = String(val || "").trim(); return /^(https?:|tel:|mailto:)/i.test(val) ? val : ""; }
   function setHref(sel, val) { var e = doc.querySelector(sel); var u = safeUrl(val); if (e && u) e.setAttribute("href", u); }
   function applyEmployee(info, r) {
+    // Ignore leftover example rows so they never overwrite the real (baked-in) card.
+    if (r && /^pr[ée]nom\s+nom$/i.test(String(r.nom || "").trim())) return;
     setText(".person-name", r.nom);
     setText(".person-role", r.poste);
     setText(".person-dept", r.departement);
