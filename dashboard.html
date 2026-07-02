@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="assets/icon.svg"/>
   <link rel="manifest" href="manifest.webmanifest"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/card.css?v=4"/>
+  <link rel="stylesheet" href="assets/card.css?v=5"/>
   <script>(function(){try{var t=localStorage.getItem('ec-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script src="assets/gate.js"></script>
   <style>
@@ -166,7 +166,7 @@
   <footer>Euro Campus · Tableau de bord interne</footer>
 </div>
 
-<script src="assets/card.js?v=4"></script>
+<script src="assets/card.js?v=5"></script>
 <script>
   // Same Apps Script Web App URL (GET via JSONP for reads + authenticated save).
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxVrPv_7MOGORDnFOqsMUdyNVTzBb9ZRjLPsplg79prvc6qd6zBzwGEP01pf0olQ4v_/exec";
@@ -428,6 +428,44 @@
     {k:"initiales",  l:"Initiales (sans photo)"}
   ];
 
+  // One-tap loader: writes the real team into the Sheet (cards 01–13) via the
+  // authenticated save action — no Apps Script needed.
+  var TEAM_MAP='https://maps.app.goo.gl/svpwEEanJJWajUJe9', TEAM_MAIL='contact@euro-campus.com',
+      TEAM_LI='https://www.linkedin.com/company/euro-campus-dz/', TEAM_B='Tizi Ouzou — Siège';
+  function T(slug,nom,poste,dep,tel,ini){return {slug:slug,nom:nom,poste:poste,departement:dep,bureau:TEAM_B,
+      mapurl:TEAM_MAP,telephone:tel,email:TEAM_MAIL,whatsapp:tel.replace(/[^\d]/g,''),linkedin:TEAM_LI,initiales:ini};}
+  var TEAM=[
+    T('employe-01','Hakim Bennini','Co-Fondateur / Co-Directeur','Direction','+213550631388','HB'),
+    T('employe-02','Said Bezzaou','Co-Fondateur / Co-Directeur','Direction','+213550631388','SB'),
+    T('employe-03','Sarah Dehmas','Responsable Communication','Communication','+213550631388','SD'),
+    T('employe-04','Mohamed Amine Bouaiche','Conseiller · Relations internationales','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie','+213560981136','MB'),
+    T('employe-05','Dahia Slimani','Conseillère en orientation','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie','+213560980962','DS'),
+    T('employe-06','Sadia Ouerdi','Conseillère en orientation','Canada, USA, Roumanie, Turquie','+213550233166','SO'),
+    T('employe-07','Yasmine Mazed','Conseillère en orientation','Canada, USA, Roumanie, Turquie','+213550233710','YM'),
+    T('employe-08','Ania Saad','Conseillère · Chef de service','Canada, USA, Roumanie, Turquie','+213550231459','AS'),
+    T('employe-09','Dehbia Halem','Conseillère en orientation','Écoles privées France, Italie, Espagne','+213560981531','DH'),
+    T('employe-10','Manel Aitout','Conseillère en orientation','Écoles privées France, Canada, USA, Italie, Espagne, Roumanie, Turquie','+213560981575','MA'),
+    T('employe-11','Melinda Belkadi','Conseillère en orientation','Écoles privées France, Italie, Espagne','+213550233711','MB'),
+    T('employe-12','Salim Yahiaoui','Conseiller en orientation','Écoles privées France, Italie, Espagne','+213550235278','SY'),
+    T('employe-13','Amel Sefsaf','Conseillère · Chef de service','Écoles privées France, Italie, Espagne','+213550235419','AS')
+  ];
+  function loadTeam(btn){
+    var session=adminSession(); if(!session){ renderEditor(); return; }
+    if(!confirm("Charger les 13 fiches de l'équipe réelle dans la feuille ? Cela remplace le nom/poste/spécialisation/téléphone des cartes 01 à 13.")) return;
+    btn.disabled=true; var i=0;
+    (function next(){
+      if(i>=TEAM.length){ btn.textContent="✓ Équipe chargée"; loadEmployees(); return; }
+      var p=TEAM[i]; btn.textContent="Chargement… "+(i+1)+"/"+TEAM.length;
+      var url=ENDPOINT+"?action=save&session="+encodeURIComponent(session)+"&slug="+encodeURIComponent(p.slug);
+      ["nom","poste","departement","bureau","mapurl","telephone","email","whatsapp","linkedin","initiales"]
+        .forEach(function(k){ url+="&"+k+"="+encodeURIComponent(p[k]||""); });
+      jsonp(url,function(data){
+        if(data && data.error==="auth"){ clearSession(); btn.textContent="Session expirée — reconnectez-vous"; setTimeout(renderEditor,1200); return; }
+        i++; setTimeout(next,300);
+      });
+    })();
+  }
+
   function renderEditor(){
     var ed=$("editor");
     var authed=!!adminSession();
@@ -461,7 +499,10 @@
         '</div>';
       });
     }
-    ed.innerHTML=bar+listHtml;
+    var teamBar = authed
+      ? '<button id="load-team" class="ed-btn" style="width:100%;margin-bottom:12px;padding:13px;background:linear-gradient(90deg,var(--teal),var(--teal-deep));color:#fff;border:none;font-size:.9rem">⤓ Charger l\'équipe réelle (fiches 01–13)</button>'
+      : '';
+    ed.innerHTML=bar+teamBar+listHtml;
     // set avatar photos via property (never concatenate the data-URI into HTML)
     ed.querySelectorAll(".ed-av[data-ph]").forEach(function(av){
       var uri=PHOTOS[av.getAttribute("data-ph")];
@@ -470,6 +511,7 @@
 
     if(authed){
       var lo=$("logout"); if(lo) lo.addEventListener("click", function(ev){ ev.preventDefault(); clearSession(); renderEditor(); });
+      var lt=$("load-team"); if(lt) lt.addEventListener("click", function(){ loadTeam(lt); });
       ed.querySelectorAll(".ed-btn[data-i]").forEach(function(b){ b.addEventListener("click", function(){ openEdit(parseInt(b.getAttribute("data-i"),10)); }); });
       ed.querySelectorAll(".ed-btn[data-act]").forEach(function(b){ b.addEventListener("click", function(){ toggleActive(parseInt(b.getAttribute("data-act"),10), b); }); });
     } else {
