@@ -77,6 +77,7 @@
     s.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "callback=" + name + "&_=" + Date.now();
     s.onerror = function () { finish(null); };
     doc.body.appendChild(s);
+    setTimeout(function () { finish(null); }, 8000); // don't hang forever on a slow call
   }
 
   /* ---------- usage analytics (fire-and-forget) ---------- */
@@ -152,13 +153,21 @@
     if (!REVIEW_ENDPOINT || !info.isCard) return;
     var slug = slugFromPath();
     if (!slug) return;
-    jsonp(REVIEW_ENDPOINT + "?action=employee&slug=" + encodeURIComponent(slug), function (data) {
-      if (data && data.ok && data.employee) applyEmployee(info, data.employee);
-    });
+    // Retry on hard failure (null/timeout) up to 2× — a slow Apps Script call
+    // shouldn't leave the card on its baked-in fallback content.
+    (function loadEmp(tries) {
+      jsonp(REVIEW_ENDPOINT + "?action=employee&slug=" + encodeURIComponent(slug), function (data) {
+        if (data && data.ok) { if (data.employee) applyEmployee(info, data.employee); }
+        else if (tries < 2) setTimeout(function () { loadEmp(tries + 1); }, 1200);
+      });
+    })(0);
     // Uploaded photo (kept in the Photos tab) overrides the static avatar image.
-    jsonp(REVIEW_ENDPOINT + "?action=photo&slug=" + encodeURIComponent(slug), function (data) {
-      if (data && data.ok && data.photo) applyPhoto(data.photo);
-    });
+    (function loadPhoto(tries) {
+      jsonp(REVIEW_ENDPOINT + "?action=photo&slug=" + encodeURIComponent(slug), function (data) {
+        if (data && data.ok) { if (data.photo) applyPhoto(data.photo); }
+        else if (tries < 2) setTimeout(function () { loadPhoto(tries + 1); }, 1500);
+      });
+    })(0);
   }
 
   /* ---------- read the card's own data ---------- */
